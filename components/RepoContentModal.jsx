@@ -1,0 +1,294 @@
+import React, { useEffect, useState } from "react";
+import {
+  Modal,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import Feather from "react-native-vector-icons/Feather";
+
+const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [content, setContent] = useState([]);
+  const [folderContent, setFolderContent] = useState(null);
+
+  useEffect(() => {
+    const fetchRepoContent = async () => {
+      const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents`;
+      const response = await fetch(url);
+      const data = await response.json();
+      setContent(data);
+    };
+    fetchRepoContent();
+  }, []);
+
+  const handleFolderClick = async (item) => {
+    if (item.type === "dir") {
+      const url = item.url;
+      const response = await fetch(url);
+      const data = await response.json();
+      setFolderContent({ data, path: item.path });
+    }
+  };
+
+  const handleFileClick = async (item) => {
+    if (item.type === "file") {
+      const url = item.download_url;
+      const response = await fetch(url);
+      const data = await response.text();
+      if (data.length > 1024 * 1024) {
+        setSelectedItem({ data: "File size too large", path: item.path });
+      } else {
+        setSelectedItem({ data, path: item.path });
+      }
+    }
+  };
+
+
+  return (
+    <Modal onRequestClose={()=>onClose()} visible={isOpen} animationType="slide">
+      <View
+        style={{
+          backgroundColor: "white",
+          padding: 20,
+          flex: 1,
+          paddingBottom: 0,
+        }}
+      >
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            columnGap: 15,
+          }}
+        >
+          <View
+            style={{
+              opacity: 0.8,
+              backgroundColor: "rgba(0,0,0,0.09)",
+              overflow: "scroll",
+              borderRadius: 6,
+              maxWidth: "91%",
+            }}
+          >
+            <ScrollView
+              contentContainerStyle={{
+                padding: 8,
+              }}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              overScrollMode="never"
+            >
+              <Text style={{ fontSize: 13.5, fontFamily: "medium" }}>
+                {repoOwner} {">"} {repoName}
+              </Text>
+            </ScrollView>
+          </View>
+          <TouchableOpacity onPress={onClose}>
+            <Feather name="chevron-down" size={24} />
+          </TouchableOpacity>
+        </View>
+        <ScrollView
+          overScrollMode="never"
+          showVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: 10 }}
+        >
+          {content.map((item) => (
+            <TouchableOpacity
+              key={item.sha}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 15,
+                columnGap: 10,
+                borderBottomColor: "rgba(0,0,0,0.07)",
+                borderBottomWidth: 1,
+                padding: 13,
+              }}
+              onPress={() => {
+                if (item.type === "dir") {
+                  handleFolderClick(item);
+                } else {
+                  handleFileClick(item);
+                }
+              }}
+            >
+              <Feather
+                name={item.type === "dir" ? "folder" : "file-text"}
+                size={17}
+              />
+              <Text
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={{
+                  fontFamily: "medium",
+                  fontSize: 14,
+                  maxWidth: "70%",
+                }}
+              >
+                {item.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      <Modal onRequestClose={()=>setSelectedItem(null)} visible={selectedItem ? true : false} animationType="slide">
+        <View
+          style={{
+            backgroundColor: "white",
+            padding: 20,
+            flex: 1,
+            paddingBottom: 0,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              columnGap: 15,
+            }}
+          >
+            <View
+              style={{
+                opacity: 0.8,
+                backgroundColor: "rgba(0,0,0,0.09)",
+                overflow: "scroll",
+                borderRadius: 6,
+                maxWidth: "91%",
+              }}
+            >
+              <ScrollView
+                contentContainerStyle={{
+                  padding: 8,
+                }}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                overScrollMode="never"
+              >
+                <Text style={{ fontSize: 13.5, fontFamily: "medium" }}>
+                  {selectedItem?.path?.replace("/", " > ")}
+                </Text>
+              </ScrollView>
+            </View>
+            <TouchableOpacity onPress={() => setSelectedItem(null)}>
+              <Feather name="chevron-down" size={24} />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              backgroundColor: "rgba(0,0,0,0.05)",
+              marginTop: 20,
+              borderRadius: 7,
+            }}
+          >
+            <ScrollView contentContainerStyle={{ padding: 10 }}>
+              <Text
+                selectable={true}
+                style={{ opacity: 0.9, fontFamily: "code" }}
+                selectionColor={"rgba(0,0,0,0.1)"}
+
+              >
+                {selectedItem?.data}
+              </Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      <Modal onRequestClose={()=>setFolderContent(null)} visible={folderContent ? true : false} animationType="slide">
+        <View
+          style={{
+            backgroundColor: "white",
+            padding: 20,
+            flex: 1,
+            paddingBottom: 0,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              columnGap: 15,
+            }}
+          >
+            <View
+              style={{
+                opacity: 0.8,
+                backgroundColor: "rgba(0,0,0,0.09)",
+                overflow: "scroll",
+                borderRadius: 6,
+                maxWidth: "91%",
+              }}
+            >
+              <ScrollView
+                contentContainerStyle={{
+                  padding: 8,
+                }}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                overScrollMode="never"
+              >
+                <Text style={{ fontSize: 13.5, fontFamily: "medium" }}>
+                  {repoOwner} {">"} {repoName} {">"}{" "}
+                  {folderContent?.path?.replace("/", " > ")}
+                </Text>
+              </ScrollView>
+            </View>
+            <TouchableOpacity onPress={() => setFolderContent(null)}>
+              <Feather name="chevron-down" size={24} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView contentContainerStyle={{ paddingTop: 10 }}>
+            {folderContent &&
+              folderContent?.data?.map((item) => (
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 15,
+                    columnGap: 10,
+                    borderBottomColor: "rgba(0,0,0,0.07)",
+                    borderBottomWidth: 1,
+                    padding: 13,
+                  }}
+                  key={item.sha}
+                  onPress={() => {
+                    if (item.type === "dir") {
+                      handleFolderClick(item);
+                    } else {
+                      handleFileClick(item);
+                    }
+                  }}
+                >
+                  <Feather
+                    name={item.type === "dir" ? "folder" : "file-text"}
+                    size={17}
+                  />
+                  <Text
+                    ellipsizeMode="tail"
+                    numberOfLines={1}
+                    style={{
+                      fontFamily: "medium",
+                      fontSize: 14,
+                      maxWidth: "70%",
+                    }}
+                  >
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+          </ScrollView>
+        </View>
+      </Modal>
+    </Modal>
+  );
+};
+
+export default RepoContentModal;

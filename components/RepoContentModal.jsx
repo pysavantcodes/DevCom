@@ -37,7 +37,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
       const url = item.download_url;
       const response = await fetch(url);
       const data = await response.text();
-      if (data.length > 1024 * 1024) {
+      if (data.length > 1024 * 102) {
         setSelectedItem({ data: "File size too large", path: item.path });
       } else {
         setSelectedItem({ data, path: item.path });
@@ -93,7 +93,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
         </View>
         <ScrollView
           overScrollMode="never"
-          showVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 10 }}
         >
           {content.map((item) => (
@@ -142,7 +142,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
             backgroundColor: "white",
             padding: 20,
             flex: 1,
-            paddingBottom: 0,
+            paddingBottom: 60,
           }}
         >
           <View
@@ -187,7 +187,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
               borderRadius: 7,
             }}
           >
-            <ScrollView contentContainerStyle={{ padding: 10 }}>
+            <ScrollView overScrollMode="never" showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 10 }}>
               <Text
                 selectable={true}
                 style={{ opacity: 0.9, fontFamily: "code" }}
@@ -245,7 +245,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
               <Feather name="chevron-down" size={24} />
             </TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={{ paddingTop: 10 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 10 }}>
             {folderContent &&
               folderContent?.data?.map((item) => (
                 <TouchableOpacity

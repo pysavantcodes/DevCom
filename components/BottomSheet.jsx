@@ -115,13 +115,14 @@ const BSheet = ({ navigation }) => {
             () => {
               getDownloadURL(uploadTask.snapshot.ref).then(
                 async (downloadURL) => {
-                  await setDoc(doc(database, "communities", communityName), {
+                  const newId = Date.now()
+                  await setDoc(doc(database, "communities", newId), {
                     name: communityName,
                     description,
                     visibility: communityMode,
                     profileImage: downloadURL,
                     createdAt: getCurrentDateTime(),
-                    id: Date.now(),
+                    id: newId,
                     members: [userInfo.email],
                     messages:[]
                   }).then(() => {
@@ -157,15 +158,17 @@ const BSheet = ({ navigation }) => {
       }
     } else {
       setLoading(true);
-      await setDoc(doc(database, "communities", communityName), {
+      const newId = new Date().getTime().toString()
+      await setDoc(doc(database, "communities", newId), {
         name: communityName,
         description,
         visibility: communityMode,
         profileImage:
           "https://cdn.raceroster.com/assets/images/team-placeholder.png",
         createdAt: getCurrentDateTime(),
-        id: Date.now(),
+        id: newId,
         members: [userInfo.email],
+        messages:[]
       }).then(() => {
         setLoading(false);
         navigation.navigate("Chats");

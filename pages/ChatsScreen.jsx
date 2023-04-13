@@ -54,13 +54,13 @@ const ChatsScreen = ({ navigation, route }) => {
     };
     setMessage("");
 
-    if (community.messages.length === 0) {
+    if (community?.messages?.length === 0) {
       await updateDoc(matchingDocs[0].ref, {
         messages: [newMessage],
       });
     } else {
       await updateDoc(matchingDocs[0].ref, {
-        messages: [...community.messages, newMessage],
+        messages: [...community?.messages, newMessage],
       });
     }
   };
@@ -122,10 +122,11 @@ const ChatsScreen = ({ navigation, route }) => {
         horizontal={false}
         onContentSizeChange={() => listRef.current.scrollToEnd({ animated: true })}
       >
-        {community.messages && community.messages.map((item) => {
+        {community?.messages && community?.messages?.map((item) => {
           const user = allUsers.filter((user)=> user.email === item.sender);
           return (
             <View
+            key={item?.time}
               style={{
                 flexDirection: "row",
                 marginBottom: 10,

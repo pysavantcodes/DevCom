@@ -6,13 +6,13 @@ import {getFirestore} from "firebase/firestore"
 import {getStorage} from "firebase/storage"
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBC_pSdVKDn3Nl7-0FvY-IOtYKvBtiDXJI",
-  authDomain: "chatapp-3919c.firebaseapp.com",
-  projectId: "chatapp-3919c",
-  storageBucket: "chatapp-3919c.appspot.com",
-  messagingSenderId: "898628960437",
-  appId: "1:898628960437:web:730fb2da7ded50b2d0befc",
-  measurementId: "G-REN2KYN1RC"
+  apiKey: `${process.env.apiKey}`,
+  authDomain: `${process.env.authDomain}`,
+  projectId: `${process.env.projectId}`,
+  storageBucket: `${process.env.storageBucket}`,
+  messagingSenderId: `${process.env.messagingSenderId}`,
+  appId: `${process.env.appId}`,
+  measurementId: `${process.env.measurementId}`
 };
 
 

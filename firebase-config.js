@@ -4,15 +4,16 @@ import { getAnalytics } from "firebase/analytics";
 import {getAuth} from "firebase/auth"
 import {getFirestore} from "firebase/firestore"
 import {getStorage} from "firebase/storage"
+import {API_KEY, AUTH_DOMAIN, PROJECT_ID, STORAGE_BUCKET, MEASUREMENT_ID,MESSAGING_SENDER_ID, APP_ID} from "react-native-dotenv"
 
 const firebaseConfig = {
-  apiKey: `${process.env.apiKey}`,
-  authDomain: `${process.env.authDomain}`,
-  projectId: `${process.env.projectId}`,
-  storageBucket: `${process.env.storageBucket}`,
-  messagingSenderId: `${process.env.messagingSenderId}`,
-  appId: `${process.env.appId}`,
-  measurementId: `${process.env.measurementId}`
+  apiKey: `${API_KEY}`,
+  authDomain: `${AUTH_DOMAIN}`,
+  projectId: `${PROJECT_ID}`,
+  storageBucket: `${STORAGE_BUCKET}`,
+  messagingSenderId: `${MESSAGING_SENDER_ID}`,
+  appId: `${APP_ID}`,
+  measurementId: `${MEASUREMENT_ID}`
 };
 
 

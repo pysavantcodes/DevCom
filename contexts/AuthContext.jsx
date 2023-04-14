@@ -28,37 +28,36 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const getUser = async () => {
-        setLoadingUser(true);
+      setLoadingUser(true);
       const storedUser = await AsyncStorage.getItem("user");
-  
+
       if (storedUser) {
         setLoadingUser(false);
         setUser(JSON.parse(storedUser));
+      }else{
+        setLoadingUser(false);
       }
-      setLoadingUser(false);
-      }
-    
-    getUser()
-  }, [])
-  
-  
-  useEffect(() => {
-    
-      const removeNetInfoSubscription = NetInfo.addEventListener((state) => {
-        const offline = !(state.isConnected && state.isInternetReachable);
-        setOfflineStatus(offline);
-      });
-  
-    return () => removeNetInfoSubscription();
+      
+    };
+
+    getUser();
   }, []);
 
+  useEffect(() => {
+    const removeNetInfoSubscription = NetInfo.addEventListener((state) => {
+      const offline = !(state.isConnected && state.isInternetReachable);
+      setOfflineStatus(offline);
+    });
+
+    return () => removeNetInfoSubscription();
+  }, []);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       setLoadingUserInfo(true);
       try {
         await onSnapshot(doc(database, "users", user.email), (doc) => {
-          setUserInfo(doc.data())
+          setUserInfo(doc.data());
         });
         setLoadingUserInfo(false);
       } catch (err) {
@@ -69,7 +68,20 @@ const AuthProvider = ({ children }) => {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user,loadingUser, setUser,setLoading, loading, userInfo, loadingUserInfo, showSheet, setShowSheet, isOffline }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loadingUser,
+        setUser,
+        setLoading,
+        loading,
+        userInfo,
+        loadingUserInfo,
+        showSheet,
+        setShowSheet,
+        isOffline,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

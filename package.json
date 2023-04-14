@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --clear",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
@@ -38,7 +38,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@expo/webpack-config": "^18.0.1"
+    "@expo/webpack-config": "^18.0.1",
+    "react-native-dotenv": "^3.4.8"
   },
   "private": true
 }

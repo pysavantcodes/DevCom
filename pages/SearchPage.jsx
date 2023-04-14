@@ -5,34 +5,33 @@ import { Image } from "react-native";
 import { TouchableOpacity } from "react-native";
 import { useCommunity } from "../contexts/CommunityContext";
 import { useAuth } from "../contexts/AuthContext";
-import {doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { database } from "../firebase-config";
 import { ActivityIndicator } from "react-native";
+import { Dimensions } from "react-native";
 
+
+const { height, width } = Dimensions.get("screen");
 const SearchPage = ({ navigation }) => {
   const { communities } = useCommunity();
   const [filteredCommunities, setFilteredCommunities] = useState([]);
   const [searchVal, setSearchVal] = useState("");
   const { userInfo } = useAuth();
-  const [joining, setJoining] = useState(false)
+  const [joining, setJoining] = useState(false);
 
-  const join = async(e)=>{
-      try {
-        setJoining(true)
-        if(e?.visibility == "public"){
-          await updateDoc(doc(database, "communities", e.id),{
-            members: [...e.members, userInfo?.email]
-          }).then(()=>{
-            setJoining(false)
-          })
-        }else{
-          
-        }
-        
-      } catch (err) {
-        
+  const join = async (e) => {
+    try {
+      setJoining(true);
+      if (e?.visibility == "public") {
+        await updateDoc(doc(database, "communities", e.id), {
+          members: [...e.members, userInfo?.email],
+        }).then(() => {
+          setJoining(false);
+        });
+      } else {
       }
-  }
+    } catch (err) {}
+  };
 
   useEffect(() => {
     if (searchVal !== "") {
@@ -68,12 +67,15 @@ const SearchPage = ({ navigation }) => {
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           padding: 20,
-          paddingTop:10
+          paddingTop: 10,
         }}
       >
-        <ScrollView contentContainerStyle={{paddingBottom:80}}>
-          {filteredCommunities.length > 0 ?
-            filteredCommunities?.map((data) => {
+        <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+        {searchVal.length > 0 && <Text style={{paddingVertical:5, fontSize:18, fontFamily:"bold"}}>Search for "{searchVal}"</Text>}
+          {filteredCommunities.length > 0 ? (
+            <>
+            
+            {filteredCommunities?.map((data) => {
               return (
                 <TouchableOpacity
                   onPress={() =>
@@ -87,8 +89,8 @@ const SearchPage = ({ navigation }) => {
                     flexDirection: "row",
                     justifyContent: "space-between",
                     borderBottomColor: "rgba(0,0,0,0.07)",
-                          borderBottomWidth: 1,
-                          paddingVertical:13
+                    borderBottomWidth: 1,
+                    paddingVertical: 13,
                   }}
                 >
                   <View
@@ -137,8 +139,8 @@ const SearchPage = ({ navigation }) => {
 
                   {!data?.members?.includes(userInfo?.email) && (
                     <TouchableOpacity
-                    disabled={joining}
-                    onPress={()=>join(data)}
+                      disabled={joining}
+                      onPress={() => join(data)}
                       style={{
                         borderWidth: 1,
                         borderColor: "black",
@@ -149,14 +151,125 @@ const SearchPage = ({ navigation }) => {
                         width: "18%",
                       }}
                     >
-                      {joining ? <ActivityIndicator color={"black"}/> :<Text style={{ fontSize: 15, fontFamily: "regular" }}>
-                        {data?.visibility == "public" ? "Join" : "Request"}
-                      </Text>}
+                      {joining ? (
+                        <ActivityIndicator color={"black"} />
+                      ) : (
+                        <Text style={{ fontSize: 15, fontFamily: "regular" }}>
+                          {data?.visibility == "public" ? "Join" : "Request"}
+                        </Text>
+                      )}
                     </TouchableOpacity>
                   )}
                 </TouchableOpacity>
               );
-            }) : <Text>Search for a community</Text>}
+            })}
+            </>
+          ) : searchVal.length > 0 && filteredCommunities.length === 0 ? (
+            <View style={{
+              width: "100%",
+              height: height *0.55,
+              alignItems: "center",
+              justifyContent: "center",
+              padding:20
+            }}>
+              <Image style={{width:"100%", height:"45%", resizeMode:"cover",}} source={{uri:"https://user-images.githubusercontent.com/110984357/232053732-3db3fc3f-d514-4229-9b67-ce6f4e82293b.png"}}/>
+                <Text style={{ fontFamily: "medium", fontSize: 15, textAlign:"center", paddingTop:8 }}>
+                We can't find the community you are searching for.
+                </Text>
+            </View>
+          ) : (
+            <>
+              <Text style={{paddingVertical:5, fontSize:18, fontFamily:"bold"}}>Top communities</Text>
+              {communities?.sort((a, b) => b?.members?.length - a?.members?.length).slice(0, 6)?.map((data) => {
+                return (
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("ChatScreen", { id: data?.id })
+                    }
+                    key={data?.id}
+                    disabled={
+                      data?.members?.includes(userInfo?.email) ? false : true
+                    }
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      borderBottomColor: "rgba(0,0,0,0.07)",
+                      borderBottomWidth: 1,
+                      paddingVertical: 13,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        columnGap: 10,
+                        width: "82%",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Image
+                        style={{
+                          width: 40,
+                          height: 40,
+                          resizeMode: "cover",
+                          borderRadius: 40,
+                        }}
+                        source={{
+                          uri: data?.profileImage,
+                        }}
+                      />
+                      <View style={{ width: "100%" }}>
+                        <Text
+                          ellipsizeMode="tail"
+                          numberOfLines={1}
+                          style={{
+                            fontFamily: "medium",
+                            fontSize: 15,
+                            width: "75%",
+                          }}
+                        >
+                          {data?.name}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontFamily: "regular",
+                            opacity: 0.7,
+                          }}
+                        >
+                          {data?.visibility}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {!data?.members?.includes(userInfo?.email) && (
+                      <TouchableOpacity
+                        disabled={joining}
+                        onPress={() => join(data)}
+                        style={{
+                          borderWidth: 1,
+                          borderColor: "black",
+                          paddingHorizontal: 10,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: 4,
+                          width: "18%",
+                        }}
+                      >
+                        {joining ? (
+                          <ActivityIndicator color={"black"} />
+                        ) : (
+                          <Text style={{ fontSize: 15, fontFamily: "regular" }}>
+                            {data?.visibility == "public" ? "Join" : "Request"}
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </>
+          )}
         </ScrollView>
       </View>
     </View>

@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   RefreshControl,
   Animated,
+  Alert
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import IonIcon from "react-native-vector-icons/Ionicons";
@@ -19,45 +20,46 @@ import CommunityCard from "../components/CommunityCard";
 import { useCommunity } from "../contexts/CommunityContext";
 import { log } from "react-native-reanimated";
 import { FlatList } from "react-native";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { database } from "../firebase-config";
+import { Image } from "react-native";
 
 const { height, width } = Dimensions.get("screen");
 const ChatHome = ({ navigation }) => {
-  const { userInfo, setShowSheet } = useAuth();
+  const { userInfo } = useAuth();
   const { loadingCommunities, communities, fetchCommunities } = useCommunity();
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectable, setSelectable] = useState(false);
   const [myCommunities, setMyCommunities] = useState([]);
-  const opacityAnim = useRef(new Animated.Value(1)).current;
-  const translateYAnim = useRef(new Animated.Value(0)).current;
 
-  //   if (scrollAtTop) {
-  //     Animated.parallel([
-  //       Animated.timing(opacityAnim, {
-  //         toValue: 1,
-  //         duration: 200,
-  //         useNativeDriver: true,
-  //       }),
-  //       Animated.timing(translateYAnim, {
-  //         toValue: 0,
-  //         duration: 200,
-  //         useNativeDriver: true,
-  //       }),
-  //     ]).start();
-  //   } else {
-  //     Animated.parallel([
-  //       Animated.timing(opacityAnim, {
-  //         toValue: 0,
-  //         duration: 200,
-  //         useNativeDriver: true,
-  //       }),
-  //       Animated.timing(translateYAnim, {
-  //         toValue: 50,
-  //         duration: 200,
-  //         useNativeDriver: true,
-  //       }),
-  //     ]).start();
-  //   }
-  // }, [scrollAtTop]);
+  const leaveCommunity = ()=>{
+    Alert.alert(`Dismiss ${selectedItems.length > 1 ? "communities?" : "community?"}`, `Are you sure you want to leave ${selectedItems.length > 1 ? "these" : "this"} ${selectedItems.length > 1 ? "communities?" : "community?"}`, [
+      {
+        text: 'NO',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {text: 'YES', onPress: () => {
+        selectedItems.forEach(async(item)=>{
+          const dt = communities?.filter((el)=>el?.id == item)[0]
+          await updateDoc(doc(database, "communities", item),{
+            members: dt?.members?.filter((u)=>u !== userInfo?.email)
+          }).then(async()=>{
+            console.log(dt?.members);
+            if(dt?.members?.filter((u)=>u !== userInfo?.email)?.length === 0){
+              await deleteDoc(doc(database, "communities", item)).then(()=>{
+                setSelectedItems([])
+              });
+            }else{
+              setSelectedItems([])
+            }
+            
+          })
+        })
+      }},
+    ]);
+  }
+
   const handlePress = (id) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter((item) => item !== id));
@@ -69,6 +71,7 @@ const ChatHome = ({ navigation }) => {
     if (!selectedItems.includes(item)) {
       setSelectable(true);
       setSelectedItems([...selectedItems, item]);
+      
     }
   };
 
@@ -125,6 +128,7 @@ const ChatHome = ({ navigation }) => {
                   </Text>
                 </View>
                 <TouchableOpacity
+                onPress={()=>leaveCommunity()}
                   style={{
                     width: 40,
                     height: 40,
@@ -165,7 +169,7 @@ const ChatHome = ({ navigation }) => {
           <View style={{backgroundColor:"white", flex:1, borderTopLeftRadius:20, borderTopRightRadius:20}}>
             <FlatList
           
-            data={myCommunities}
+            data={myCommunities.sort((a,b)=> new Date(b?.messages[b?.messages?.length -1]?.time) - new Date(a?.messages[a?.messages?.length -1]?.time))}
             overScrollMode={"never"}
             bounces
             refreshControl={
@@ -183,7 +187,8 @@ const ChatHome = ({ navigation }) => {
                   justifyContent: "center",
                 }}
               >
-                <Text style={{ fontFamily: "medium", fontSize: 17 }}>
+                <Image style={{width:"100%", height:"45%", resizeMode:"contain",}} source={{uri:"https://user-images.githubusercontent.com/110984357/232028939-ad98af03-376f-40fc-91f5-4c298a4a3913.png"}}/>
+                <Text style={{ fontFamily: "bold", fontSize: 19 }}>
                   No Community Found
                 </Text>
                 <View
@@ -219,6 +224,11 @@ const ChatHome = ({ navigation }) => {
                   selectable
                     ? handlePress(item.id)
                     : navigation.navigate("ChatScreen", { id: item.id })
+                }
+                unRead={
+                  item?.messages?.filter((msg)=>{
+                   return !msg?.readBy?.includes(userInfo?.email)
+                  }).length
                 }
               />
               

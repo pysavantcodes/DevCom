@@ -15,6 +15,7 @@ import {
   Text,
   BackHandler,
   TouchableOpacity,
+  TouchableNativeFeedback
 } from "react-native";
 import IonIcon from "react-native-vector-icons/Ionicons";
 import FthIcon from "react-native-vector-icons/Feather";
@@ -30,7 +31,7 @@ import { BottomSheet } from "react-native-btr";
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function Home() {
+function Home({navigation}) {
   return (
     <Tab.Navigator
       keyboardHidesTabBar={true}
@@ -56,7 +57,8 @@ function Home() {
         name="Chats"
         options={{
           tabBarIcon: ({ focused }) => (
-            <View
+            <TouchableOpacity
+            onPress={() => navigation.navigate("Chats")}
               style={{
                 alignItems: "center",
                 flexDirection: "column",
@@ -70,7 +72,7 @@ function Home() {
               >
                 Communities
               </Text>
-            </View>
+            </TouchableOpacity>
           ),
         }}
         component={ChatHome}
@@ -79,7 +81,8 @@ function Home() {
         name="Search"
         options={{
           tabBarIcon: ({ focused }) => (
-            <View
+            <TouchableOpacity
+            onPress={() => navigation.navigate("Search")}
               style={{
                 alignItems: "center",
                 flexDirection: "column",
@@ -93,7 +96,7 @@ function Home() {
               >
                 Explore
               </Text>
-            </View>
+            </TouchableOpacity>
           ),
         }}
         component={SearchPage}
@@ -102,7 +105,8 @@ function Home() {
         name="Create"
         options={{
           tabBarIcon: ({ focused }) => (
-            <View
+            <TouchableOpacity
+            onPress={() => navigation.navigate("Create")}
               style={{
                 alignItems: "center",
                 flexDirection: "column",
@@ -120,7 +124,7 @@ function Home() {
               >
                 Create
               </Text>
-            </View>
+            </TouchableOpacity>
           ),
         }}
         component={BSheet}
@@ -130,7 +134,8 @@ function Home() {
         name="Github"
         options={{
           tabBarIcon: ({ focused }) => (
-            <View
+            <TouchableOpacity
+            onPress={() => navigation.navigate("Github")}
               style={{
                 alignItems: "center",
                 flexDirection: "column",
@@ -144,7 +149,7 @@ function Home() {
               >
                 Github
               </Text>
-            </View>
+            </TouchableOpacity>
           ),
         }}
         component={Github}
@@ -154,7 +159,8 @@ function Home() {
         name="Profile"
         options={{
           tabBarIcon: ({ focused }) => (
-            <View
+            <TouchableOpacity
+            onPress={() => navigation.navigate("Profile")}
               style={{
                 alignItems: "center",
                 flexDirection: "column",
@@ -168,7 +174,7 @@ function Home() {
               >
                 Profile
               </Text>
-            </View>
+            </TouchableOpacity>
           ),
         }}
         component={ProfilePage}

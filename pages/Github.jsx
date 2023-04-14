@@ -21,9 +21,6 @@ import Feather from "react-native-vector-icons/Feather";
 import RepoContentModal from "../components/RepoContentModal";
 
 const Github = () => {
-  const [repositories, setRepositories] = useState([]);
-  const [selectedRepo, setSelectedRepo] = useState(null);
-  const [repoContent, setRepoContent] = useState([]);
   const { userInfo } = useAuth();
   const [accName, setAccName] = useState("");
   const [snackBarData, setSnackBarData] = useState("");
@@ -31,6 +28,7 @@ const Github = () => {
   const [creating, setCreating] = useState(false);
   const [repo, setRepo] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  
   const {
     githubUserDetails,
     fetchingUserDetails,
@@ -289,7 +287,7 @@ const Github = () => {
           </View>
         </View>
       ) : (
-        <LoadingUserPage />
+        <LoadingUserPage style={{paddingBottom: 110,}} />
       )}
       {showSnackBar && (
         <Snackbar

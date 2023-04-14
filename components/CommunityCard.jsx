@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { TouchableOpacity, TouchableNativeFeedback } from "react-native";
 import { Image } from "react-native";
 import Feather from "react-native-vector-icons/Feather";
@@ -14,10 +14,12 @@ const CommunityCard = ({
   clicked,
   selected,
   recentMessage,
+  unRead
 }) => {
   const { userInfo } = useAuth();
-  const {allUsers} = useCommunity();
-  const user = allUsers.filter((user)=> user.email === recentMessage[0]);
+  const { allUsers } = useCommunity();
+  const user = allUsers.filter((user) => user.email === recentMessage[0]);
+  
   return (
     <TouchableNativeFeedback
       onPress={() => clicked()}
@@ -63,21 +65,33 @@ const CommunityCard = ({
           </Text>
           <Text
             style={{
-              fontFamily: "regular",
+              fontFamily: unRead == 0 ? "regular" : "bold",
               fontSize: 12,
-              opacity: 0.7,
+              opacity: unRead == 0 ? 0.7 : 1,
               maxWidth: "80%",
+
             }}
             ellipsizeMode="tail"
             numberOfLines={1}
           >
-            {!recentMessage[0] 
+            {!recentMessage[0]
               ? "No recent messages"
               : user[0]?.email === userInfo.email
               ? `You: ${recentMessage[1]}`
               : `${user[0]?.userName}: ${recentMessage[1]}`}
           </Text>
         </View>
+        {unRead !== 0 && <View
+          style={{
+            backgroundColor: "black",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 30,
+            height:25, width:25
+          }}
+        >
+          <Text style={{ color: "white", textAlign: "center", fontSize:11 }}>{unRead}</Text>
+        </View>}
       </View>
     </TouchableNativeFeedback>
   );

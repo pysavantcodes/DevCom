@@ -115,7 +115,7 @@ const BSheet = ({ navigation }) => {
             () => {
               getDownloadURL(uploadTask.snapshot.ref).then(
                 async (downloadURL) => {
-                  const newId = Date.now()
+                  const newId = new Date().getTime().toString()
                   await setDoc(doc(database, "communities", newId), {
                     name: communityName,
                     description,

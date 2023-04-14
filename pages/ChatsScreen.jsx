@@ -24,6 +24,8 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { FlatList } from "react-native";
+import { Modal } from "react-native";
+import CommunityInfo from "../components/CommunityInfo";
 
 const ChatsScreen = ({ navigation, route }) => {
   const { id } = route.params;
@@ -34,6 +36,7 @@ const ChatsScreen = ({ navigation, route }) => {
   const { userInfo } = useAuth();
   const listRef = useRef();
   const { allUsers } = useCommunity();
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     const getCommunity = async () => {
@@ -91,6 +94,9 @@ const ChatsScreen = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
+      <Modal animationType="slide" onRequestClose={()=>setShowModal(false)} visible={showModal}>
+        <CommunityInfo close={()=>setShowModal(false)} community={community}/>
+      </Modal>
       <View style={styles.head}>
         <TouchableOpacity
           onPress={() => navigation.navigate("Chats")}
@@ -106,6 +112,7 @@ const ChatsScreen = ({ navigation, route }) => {
           <Ant name="arrowleft" size={20} color={"white"} />
         </TouchableOpacity>
         <TouchableOpacity
+        onPress={()=>setShowModal(true)}
           style={{
             flexDirection: "row",
             columnGap: 8,
@@ -147,7 +154,7 @@ const ChatsScreen = ({ navigation, route }) => {
             >
               {community?.members?.length === 2
                 ? `You and 1 other`
-                : `You and ${community?.members?.length - 1} others`}
+                : `You and ${community?.members?.length ? community?.members?.length - 1 : "0"} others`}
             </Text>
           </View>
         </TouchableOpacity>

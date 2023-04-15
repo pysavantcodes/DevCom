@@ -11,15 +11,16 @@ import {
 import React, { useEffect, useState } from "react";
 import Inputs from "../components/Inputs";
 import Checkbox from "expo-checkbox";
-import {
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, database } from "../firebase-config";
 import { collection, doc, setDoc } from "firebase/firestore";
 import { Snackbar } from "@react-native-material/core";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../contexts/AuthContext";
+import { Image } from "react-native";
+import { Dimensions } from "react-native";
 
+const { width, height } = Dimensions.get("screen");
 const Register = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,8 +43,9 @@ const Register = ({ navigation }) => {
             setDoc(doc(collection(database, "users"), email), {
               email,
               userName,
-              profileImage:"https://media.istockphoto.com/id/1288129985/vector/missing-image-of-a-person-placeholder.jpg?s=612x612&w=0&k=20&c=9kE777krx5mrFHsxx02v60ideRWvIgI1RWzR1X4MG2Y=",
-              githubAcc:null
+              profileImage:
+                "https://media.istockphoto.com/id/1288129985/vector/missing-image-of-a-person-placeholder.jpg?s=612x612&w=0&k=20&c=9kE777krx5mrFHsxx02v60ideRWvIgI1RWzR1X4MG2Y=",
+              githubAcc: null,
             });
             try {
               await AsyncStorage.setItem("user", JSON.stringify(res.user));
@@ -52,7 +54,7 @@ const Register = ({ navigation }) => {
             setLoading(false);
             setShowSnackBar(true);
             setSnackBarData("Sign Up Successful");
-            navigation.navigate('Chat', { screen: 'Chats' })
+            navigation.navigate("Chat", { screen: "Chats" });
           }
         );
       } catch (err) {
@@ -70,10 +72,15 @@ const Register = ({ navigation }) => {
           setSnackBarData("Email already in use");
         } else if (err.code === "auth/network-request-failed") {
           setShowSnackBar(true);
-          setSnackBarData("Sorry something went wrong!! Check your connection and try again");
+          setSnackBarData(
+            "Sorry something went wrong!! Check your connection and try again"
+          );
         } else if (err.code === "auth/weak-password") {
           setShowSnackBar(true);
           setSnackBarData("Password should be at least 6 characters");
+        } else if (err.code === "auth/invalid-email") {
+          setShowSnackBar(true);
+          setSnackBarData("Email is Invalid");
         } else {
           setLoading(false);
           console.log(err.message);
@@ -85,12 +92,10 @@ const Register = ({ navigation }) => {
   };
 
   useEffect(() => {
-    console.log(user);
-    if(user){
-      navigation.navigate('Chat', { screen: 'Chats' })
+    if (user) {
+      navigation.navigate("Chat", { screen: "Chats" });
     }
-  }, [user])
-   
+  }, [user]);
 
   useEffect(() => {
     if (showSnackBar === true) {
@@ -101,104 +106,123 @@ const Register = ({ navigation }) => {
   }, [showSnackBar]);
 
   return (
-    <ScrollView
-      contentContainerStyle={{ flex: 1 }}
-      style={{ backgroundColor: "white" }}
-      bouncesZoom={true}
-      bounces={true}
-      alwaysBounceVertical={true}
-    >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.texts}>
-          <Text style={{ fontSize: 30, fontFamily: "bold" }}>
-            Create Account
-          </Text>
-          <Text
-            style={{ paddingVertical: 5, fontFamily: "regular", opacity: 0.6 }}
-          >
-            Connect with your friends today!
-          </Text>
-        </View>
-        <View style={styles.form}>
-          <Inputs
-            setValue={setUserName}
-            label="Username"
-            placeholder="Enter a username"
-          />
-          <Inputs
-            setValue={setEmail}
-            label="Email Address"
-            placeholder="Enter your email address"
-          />
-          <Inputs
-            setValue={setPassword}
-            label="Password"
-            placeholder="Enter your password"
-          />
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={{ backgroundColor: "white" }}
+        bouncesZoom={true}
+        bounces={true}
+        overScrollMode="never"
+      >
+        <SafeAreaView style={styles.container}>
           <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
-          >
-            <TouchableOpacity
-              onPress={() => setChecked(!isChecked)}
-              style={{ flexDirection: "row", alignItems: "center" }}
-            >
-              <Checkbox
-                value={isChecked}
-                onValueChange={setChecked}
-                color={isChecked ? "black" : undefined}
-                style={styles.checkbox}
-              />
-              <Text style={{ fontSize: 12, fontFamily: "regular" }}>
-                Remember me
-              </Text>
-            </TouchableOpacity>
-            {/* <TouchableOpacity><Text style={{ fontSize: 12, fontFamily: "regular", color: "rgba(0,0,0,0.8)" }}>Forgot Password?</Text></TouchableOpacity> */}
-          </View>
-        </View>
-        <TouchableOpacity
-          disabled={loading}
-          onPress={() => {
-            register();
-          }}
-          style={[styles.button, loading && { opacity: 0.7 }]}
-        >
-          {loading ? (
-            <ActivityIndicator color={"white"} />
-          ) : (
-            <Text style={{ fontFamily: "regular", color: "white" }}>
-              Sign Up
-            </Text>
-          )}
-        </TouchableOpacity>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingBottom: 10,
-          }}
-        >
-          <Text style={{ fontFamily: "regular", marginRight: 3 }}>
-            Already have an account?
-          </Text>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate("Login");
+            style={{
+              backgroundColor: "white",
+              height: height * 0.3,
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <Text style={{ fontFamily: "regular", color: "rgba(0,0,0,0.4)" }}>
-              Sign In
+            <Image
+              resizeMode="contain"
+              style={{ width: "100%", height: "100%" }}
+              source={require("../assets/signup.png")}
+            />
+          </View>
+          <View style={styles.texts}>
+            <Text style={{ fontSize: 30, fontFamily: "bold" }}>
+              Create Account
             </Text>
+            <Text
+              style={{
+                paddingVertical: 5,
+                fontFamily: "regular",
+                opacity: 0.6,
+              }}
+            >
+              Connect with developers today!
+            </Text>
+          </View>
+          <View style={styles.form}>
+            <Inputs
+              setValue={setUserName}
+              label="Username"
+              placeholder="Enter a username"
+            />
+            <Inputs
+              setValue={setEmail}
+              label="Email Address"
+              placeholder="Enter your email address"
+            />
+            <Inputs
+              setValue={setPassword}
+              label="Password"
+              placeholder="Enter your password"
+            />
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
+              <TouchableOpacity
+                onPress={() => setChecked(!isChecked)}
+                style={{ flexDirection: "row", alignItems: "center" }}
+              >
+                <Checkbox
+                  value={isChecked}
+                  onValueChange={setChecked}
+                  color={isChecked ? "black" : undefined}
+                  style={styles.checkbox}
+                />
+                <Text style={{ fontSize: 12, fontFamily: "regular" }}>
+                  Remember me
+                </Text>
+              </TouchableOpacity>
+              {/* <TouchableOpacity><Text style={{ fontSize: 12, fontFamily: "regular", color: "rgba(0,0,0,0.8)" }}>Forgot Password?</Text></TouchableOpacity> */}
+            </View>
+          </View>
+          <TouchableOpacity
+            disabled={loading}
+            onPress={() => {
+              register();
+            }}
+            style={[styles.button, loading && { opacity: 0.7 }]}
+          >
+            {loading ? (
+              <ActivityIndicator color={"white"} />
+            ) : (
+              <Text style={{ fontFamily: "regular", color: "white" }}>
+                Sign Up
+              </Text>
+            )}
           </TouchableOpacity>
-        </View>
-        {showSnackBar && (
-          <Snackbar
-            message={snackBarData}
-            style={{ position: "absolute", start: 16, end: 16, bottom: 16 }}
-          />
-        )}
-      </SafeAreaView>
-    </ScrollView>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingBottom: 10,
+            }}
+          >
+            <Text style={{ fontFamily: "regular", marginRight: 3 }}>
+              Already have an account?
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate("Login");
+              }}
+            >
+              <Text style={{ fontFamily: "regular", color: "rgba(0,0,0,0.4)" }}>
+                Sign In
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </ScrollView>
+      {showSnackBar && (
+        <Snackbar
+          message={snackBarData}
+          style={{ position: "absolute", start: 16, end: 16, bottom: 16 }}
+        />
+      )}
+    </View>
   );
 };
 
@@ -206,9 +230,8 @@ export default Register;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: StatusBar.currentHeight + 80,
     paddingHorizontal: 20,
-    flex: 1,
+    
   },
   texts: {
     paddingVertical: 20,

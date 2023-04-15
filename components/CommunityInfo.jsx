@@ -10,21 +10,20 @@ import React, { useEffect, useState } from "react";
 import AntIcon from "react-native-vector-icons/AntDesign";
 import { TouchableOpacity } from "react-native";
 import { ImageBackground } from "react-native";
+import { useCommunity } from "../contexts/CommunityContext";
+import { useAuth } from "../contexts/AuthContext";
+import { database } from "../firebase-config";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { ActivityIndicator } from "react-native";
+import IonIcon from "react-native-vector-icons/Ionicons";
 
-const CommunityInfo = ({ community, close }) => {
+const CommunityInfo = ({ community, close, navigation }) => {
   const [scrollOffset, setScrollOffset] = useState(0);
+  const [removing, setRemoving] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const imageHeight = new Animated.Value(220 - scrollOffset);
-  // const opacity = new Animated.Value(1 - scrollOffset / 350);
-  const left = imageHeight.interpolate({
-    inputRange: [0, 220],
-    outputRange: [80, 15],
-    extrapolate: "clamp",
-  });
-  const bottom = imageHeight.interpolate({
-    inputRange: [0, 220],
-    outputRange: [28, 15],
-    extrapolate: "clamp",
-  });
+  const { allUsers } = useCommunity();
+  const { userInfo } = useAuth();
   const size = imageHeight.interpolate({
     inputRange: [0, 220],
     outputRange: [17, 28],
@@ -33,7 +32,7 @@ const CommunityInfo = ({ community, close }) => {
   const opacity = imageHeight.interpolate({
     inputRange: [0, 220],
     outputRange: [1, 0.3],
-    extrapolate: 'clamp'
+    extrapolate: "clamp",
   });
 
   const handleScroll = (event) => {
@@ -41,10 +40,50 @@ const CommunityInfo = ({ community, close }) => {
     setScrollOffset(offsetY);
   };
 
-  useEffect(() => {
-    console.log(opacity);
-  }, [opacity])
-  
+  const remove = async (email) => {
+    try {
+      setRemoving(true);
+      const members = [...community?.members];
+      const index = members.indexOf(email);
+      if (index > -1) {
+        members.splice(index, 1);
+      }
+      await updateDoc(doc(database, "communities", community?.id), {
+        members: members,
+      }).then(() => {
+        setRemoving(false);
+      });
+    } catch (err) {}
+  };
+  const leave = async (email) => {
+    try {
+      setLeaving(true);
+      const members = [...community?.members];
+      const index = members.indexOf(email);
+      if (index > -1) {
+        members.splice(index, 1);
+      }
+      await updateDoc(doc(database, "communities", community?.id), {
+        members: members,
+      }).then(async () => {
+        if (
+          community?.members?.filter((u) => u !== userInfo?.email)?.length === 0
+        ) {
+          await deleteDoc(doc(database, "communities", community?.id)).then(
+            () => {
+              setLeaving(false);
+              navigation.navigate("Chats");
+              close();
+            }
+          );
+        } else {
+          setLeaving(false);
+          navigation.navigate("Chats");
+          close();
+        }
+      });
+    } catch (err) {}
+  };
 
   return (
     <View>
@@ -79,14 +118,19 @@ const CommunityInfo = ({ community, close }) => {
                 width: "100%",
                 height: "100%",
                 position: "relative",
-                backgroundColor: community?.profileImage == "https://cdn.raceroster.com/assets/images/team-placeholder.png" ? `rgba(0,0,0,.9)` : `rgba(0,0,0,.6)`,
-                padding:15,
-                alignItems: "center", justifyContent:"center",
+                backgroundColor:
+                  community?.profileImage ==
+                  "https://cdn.raceroster.com/assets/images/team-placeholder.png"
+                    ? `rgba(0,0,0,.9)`
+                    : `rgba(0,0,0,.6)`,
+                padding: 15,
+                alignItems: "center",
+                justifyContent: "center",
               },
-            ]} 
+            ]}
           >
             <TouchableOpacity
-            onPress={()=>close()}
+              onPress={() => close()}
               style={{
                 position: "absolute",
                 top: 15,
@@ -94,7 +138,7 @@ const CommunityInfo = ({ community, close }) => {
                 zIndex: 3,
                 width: 50,
                 height: 50,
-                backgroundColor:"rgba(0,0,0,0.6)",
+                backgroundColor: "rgba(0,0,0,0.6)",
                 alignItems: "center",
                 justifyContent: "center",
                 borderRadius: 40,
@@ -103,20 +147,20 @@ const CommunityInfo = ({ community, close }) => {
               <AntIcon name="arrowleft" size={20} color={"white"} />
             </TouchableOpacity>
             <Animated.Text
-            ellipsizeMode="tail"
-            numberOfLines={1}
+              ellipsizeMode="tail"
+              numberOfLines={1}
               style={[
                 {
                   fontSize: size,
                   color: "white",
-                  position:scrollOffset == 0 ? "absolute" : "relative",
-                bottom: scrollOffset == 0 ? 15 : 0,
-                left: scrollOffset == 0 ? 15 : 0,
+                  position: scrollOffset == 0 ? "absolute" : "relative",
+                  bottom: scrollOffset == 0 ? 15 : 0,
+                  left: scrollOffset == 0 ? 15 : 0,
                   fontFamily: "bold",
-                  maxWidth:"100%", 
-                  width:"100%",
-                  
-                },scrollOffset > 0 && {width:"60%",textAlign:"center"}
+                  maxWidth: "100%",
+                  width: "100%",
+                },
+                scrollOffset > 0 && { width: "60%", textAlign: "center" },
               ]}
             >
               {community?.name}
@@ -129,104 +173,163 @@ const CommunityInfo = ({ community, close }) => {
         onScroll={handleScroll}
       >
         <View style={{ padding: 20 }}>
-          <Text>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non
-            risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing
-            nec, ultricies sed, Lorem ipsum dolor sit amet consectetur
-            adipisicing elit. Ad consequuntur quia iure doloribus libero
-            cupiditate quod consectetur, inventore reiciendis pariatur quaerat,
-            et tempore voluptate neque ut cumque, nihil nulla minus? Quia vero
-            dignissimos nisi officiis deleniti, atque veritatis exercitationem
-            quisquam molestias itaque? Excepturi quam nemo libero maxime enim
-            nesciunt dolorum odit vero veritatis. Libero dolor error facilis
-            quisquam illo laborum esse reiciendis, assumenda aliquid at! Aut eos
-            odio debitis, dolorum porro reiciendis id, optio praesentium
-            consectetur rerum amet delectus eaque cum culpa quia. Repellendus,
-            vel. Et, architecto ullam totam exercitationem doloremque ad quidem.
-            Enim laboriosam quod tempora dolores similique architecto, sed modi
-            necessitatibus repudiandae quasi nisi velit unde consequuntur atque
-            nemo. Eum debitis earum nostrum deserunt dignissimos, explicabo
-            distinctio aspernatur fugit sunt molestias similique cumque
-            provident quia neque nam architecto! Voluptate unde soluta, error ea
-            consequatur quo aut debitis quisquam autem aperiam laboriosam fugit
-            cupiditate sapiente sit sed veniam non corrupti, odio ipsum. Libero
-            fugit sed cupiditate porro, totam aperiam aliquam repudiandae
-            reiciendis, magni repellat hic optio praesentium exercitationem
-            voluptatum dolores, quaerat beatae! Deleniti sint magnam maiores
-            dicta ducimus libero, asperiores quis a illo consectetur est fugiat?
-            Cupiditate accusantium maiores ea, at, cumque doloribus doloremque
-            praesentium itaque alias blanditiis consectetur qui adipisci
-            deleniti corporis illo, quia mollitia ut possimus totam laudantium
-            atque dolore sint! Provident rem consequatur nam fugit quia.
-            Accusantium autem libero, harum, perspiciatis reiciendis doloribus
-            non natus voluptas consequuntur maxime tempora repellendus dolorum
-            ratione. Nemo corrupti, nostrum rerum iste perspiciatis enim porro
-            adipisci dolores soluta. Reprehenderit facilis ullam dicta ad
-            deleniti aspernatur nostrum culpa magnam eaque veritatis asperiores
-            nihil quibusdam esse nulla aliquam amet commodi sunt error nesciunt,
-            quo vitae assumenda placeat, voluptatibus eos. Nulla vero odio
-            incidunt consectetur praesentium aut accusantium ad cumque provident
-            vel tenetur fugit eum id, doloribus ex rerum quasi quos aspernatur
-            quaerat a ducimus error tempora! Magni obcaecati ab recusandae,
-            dolorem eveniet praesentium earum ipsum deserunt sequi. Facere
-            nesciunt repellat velit dolorem labore facilis. Nam maxime in ea
-            aliquid aliquam, ullam laborum soluta voluptate totam perspiciatis
-            repudiandae adipisci beatae provident cum quidem autem architecto
-            dolorum rerum omnis id earum? Obcaecati ipsa labore unde corrupti
-            ipsum sapiente nobis atque aut voluptas, incidunt illo facere
-            consectetur sequi laudantium tenetur ullam repudiandae est
-            repellendus earum quaerat vitae. Natus excepturi tempora rerum, qui
-            veniam odio corporis ad reprehenderit hic, perferendis deserunt!
-            Quos similique, impedit, vero maiores libero modi voluptatem odio
-            magnam quas id quo autem vitae, odit explicabo qui iure incidunt vel
-            ad laudantium repellat assumenda repellendus dolorum quaerat! Omnis
-            inventore laboriosam iusto modi asperiores commodi perspiciatis quo,
-            quis ex quibusdam magni doloremque! Magni, asperiores fuga. Officia
-            dolorem praesentium provident maxime cumque ipsum quo excepturi
-            tenetur ut autem. Earum sint hic atque recusandae delectus
-            perferendis iste officiis dolorem nostrum aliquam, tempora adipisci
-            beatae quasi vel? Deserunt nam doloribus asperiores dolorem.
-            Corrupti animi consequuntur mollitia sequi voluptate suscipit
-            asperiores fugiat porro obcaecati alias accusamus quaerat hic
-            voluptatibus beatae, quibusdam delectus reprehenderit dolor magnam
-            consectetur! Voluptate numquam, quos quisquam accusantium nam
-            aliquid. Placeat pariatur minus consectetur neque corrupti, quod
-            dolorum nihil repudiandae! Aliquam a exercitationem provident
-            asperiores architecto vitae totam iure atque sapiente saepe.
-            Perspiciatis dicta ipsam facilis non repudiandae vitae officia
-            magnam dignissimos esse obcaecati excepturi atque voluptas, ab iste
-            et ullam omnis minima quos quaerat, molestiae, possimus incidunt
-            odit numquam! Nihil, iure odit dolor iste praesentium exercitationem
-            laborum delectus earum corrupti repellendus officiis architecto
-            cumque possimus! Inventore porro beatae voluptatum, nihil non itaque
-            aspernatur reiciendis reprehenderit fuga consectetur maiores aperiam
-            expedita libero quam possimus atque officia, assumenda, earum
-            perspiciatis maxime. Reiciendis nesciunt aperiam totam atque
-            deleniti at quibusdam eos, pariatur, rem commodi minima voluptate
-            laborum placeat repudiandae consectetur eum accusantium nobis porro,
-            eaque sunt officia. Amet, iste doloribus! Id, culpa laborum expedita
-            facilis iusto, sapiente magni alias quisquam quo veritatis eos
-            cumque placeat fugiat natus incidunt labore, modi quidem sit minima.
-            Aliquam quas nihil tempora alias dolore cupiditate consequuntur, at
-            voluptatem maxime, similique delectus quae quia deserunt nesciunt
-            incidunt tenetur a facere sed fugiat ea labore? Praesentium id
-            laborum beatae, numquam fugit impedit! Sit suscipit molestias saepe
-            voluptate, obcaecati nesciunt laboriosam sint, fuga, sunt
-            exercitationem illo incidunt a beatae cupiditate maxime earum
-            debitis omnis hic quae. Iste reiciendis repudiandae consectetur hic
-            voluptatibus adipisci possimus perspiciatis praesentium fugiat
-            libero voluptatum eligendi minima, nulla accusamus, accusantium quos
-            ipsam. Dicta placeat non culpa ex magni magnam nobis. Quisquam
-            explicabo hic optio nisi, eos temporibus, quae sed nihil molestias
-            harum nam! Enim, eaque rem. Fuga, unde. Corporis eius eveniet,
-            tempore nostrum voluptatibus incidunt dicta, provident non odio quas
-            ipsa. Corrupti quis velit temporibus alias sit minus consequatur
-            maxime eaque eum repellendus. Quo quas facilis debitis quia
-            aspernatur nesciunt illum, minima ea necessitatibus omnis deserunt
-            temporibus dolorum velit tempore placeat amet ab labore, quam
-            dolores? Odit repellat et commodi, a illo est consequuntur.
-            Accusamus natus illum architecto ut maxime reiciendis nobis odit.
+          <Text style={{ fontFamily: "bold", fontSize: 17 }}>Description</Text>
+          <Text style={{ fontFamily: "regular", fontSize: 14, padding: 10 }}>
+            {community?.description}
           </Text>
+          <Text style={{ fontFamily: "bold", fontSize: 17, paddingTop: 10 }}>
+            Created
+          </Text>
+          <Text style={{ fontFamily: "regular", fontSize: 14, padding: 10 }}>
+            {community?.createdAt?.split(" ")[0]} at {community?.createdAt?.split(" ")[1]} {community?.createdAt?.split(" ")[2]}
+          </Text>
+          <Text
+            style={{
+              fontFamily: "bold",
+              fontSize: 17,
+              paddingTop: 10,
+              paddingBottom: 15,
+            }}
+          >
+            Members
+          </Text>
+          {allUsers
+            ?.filter((user) => community?.members?.includes(user.email))
+            ?.sort((a, b) => {
+              if (a.email === community.creator) return -1;
+              if (b.email === community.creator) return 1;
+              return 0;
+            })
+            ?.map((data) => {
+              return (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingBottom: 13,
+                    justifyContent: "space-between",
+                  }}
+                  key={data?.email}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      columnGap: 13,
+                    }}
+                  >
+                    <Image
+                      style={{ width: 45, height: 45, borderRadius: 45 }}
+                      source={{ uri: data?.profileImage }}
+                    />
+                    <View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          columnGap: 2,
+                        }}
+                      >
+                        <Text style={{ fontFamily: "medium", fontSize: 16 }}>
+                          {data?.userName}
+                        </Text>
+                        {userInfo?.email == data?.email && (
+                          <Text
+                            style={{
+                              fontFamily: "regular",
+                              fontSize: 10,
+                              opacity: 0.6,
+                            }}
+                          >
+                            {"(you)"}
+                          </Text>
+                        )}
+                      </View>
+                      <Text
+                        style={{
+                          fontFamily: "regular",
+                          fontSize: 12,
+                          opacity: 0.7,
+                        }}
+                      >
+                        {data?.email}
+                      </Text>
+                    </View>
+                  </View>
+                  {userInfo?.email == community?.creator &&
+                    data?.email != community?.creator &&
+                    (removing ? (
+                      <ActivityIndicator color={"red"} />
+                    ) : (
+                      <TouchableOpacity
+                        disabled={removing}
+                        onPress={() => remove(data?.email)}
+                        style={[
+                          {
+                            borderWidth: 1,
+                            borderColor: "red",
+                            padding: 5,
+                            paddingHorizontal: 7,
+                            borderRadius: 4,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          },
+                          removing && { opacity: 0.5 },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: "medium",
+                            fontSize: 13,
+                            color: "red",
+                          }}
+                        >
+                          Remove
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  {data?.email == community?.creator && (
+                    <Text style={{ fontFamily: "medium", fontSize: 13 }}>
+                      Creator
+                    </Text>
+                  )}
+                </View>
+              );
+            })}
+          <View
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              columnGap: 10,
+              paddingVertical: 10,
+              marginTop: 10,
+              justifyContent: "center",
+            }}
+          >
+            {leaving ? (
+              <ActivityIndicator color={"red"} />
+            ) : (
+              <TouchableOpacity
+                onPress={() => leave(userInfo?.email)}
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
+                  columnGap: 10,
+                }}
+              >
+                <IonIcon
+                  size={23}
+                  color={"red"}
+                  name="md-arrow-back-circle-outline"
+                />
+                <Text
+                  style={{ fontSize: 16, color: "red", fontFamily: "medium" }}
+                >
+                  Leave Community
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </ScrollView>
     </View>

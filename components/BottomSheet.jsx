@@ -124,7 +124,8 @@ const BSheet = ({ navigation }) => {
                     createdAt: getCurrentDateTime(),
                     id: newId,
                     members: [userInfo.email],
-                    messages:[]
+                    messages:[],
+                    creator: userInfo?.email
                   }).then(() => {
                     setLoading(false);
                     navigation.navigate("Chats");
@@ -168,7 +169,8 @@ const BSheet = ({ navigation }) => {
         createdAt: getCurrentDateTime(),
         id: newId,
         members: [userInfo.email],
-        messages:[]
+        messages:[],
+        creator:userInfo?.email
       }).then(() => {
         setLoading(false);
         navigation.navigate("Chats");

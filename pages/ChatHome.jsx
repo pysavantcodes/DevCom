@@ -45,7 +45,6 @@ const ChatHome = ({ navigation }) => {
           await updateDoc(doc(database, "communities", item),{
             members: dt?.members?.filter((u)=>u !== userInfo?.email)
           }).then(async()=>{
-            console.log(dt?.members);
             if(dt?.members?.filter((u)=>u !== userInfo?.email)?.length === 0){
               await deleteDoc(doc(database, "communities", item)).then(()=>{
                 setSelectedItems([])

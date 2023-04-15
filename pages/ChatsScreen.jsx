@@ -36,7 +36,7 @@ const ChatsScreen = ({ navigation, route }) => {
   const { userInfo } = useAuth();
   const listRef = useRef();
   const { allUsers } = useCommunity();
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const getCommunity = async () => {
@@ -94,8 +94,16 @@ const ChatsScreen = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
-      <Modal animationType="slide" onRequestClose={()=>setShowModal(false)} visible={showModal}>
-        <CommunityInfo close={()=>setShowModal(false)} community={community}/>
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setShowModal(false)}
+        visible={showModal}
+      >
+        <CommunityInfo
+          close={() => setShowModal(false)}
+          community={community}
+          navigation={navigation}
+        />
       </Modal>
       <View style={styles.head}>
         <TouchableOpacity
@@ -112,7 +120,7 @@ const ChatsScreen = ({ navigation, route }) => {
           <Ant name="arrowleft" size={20} color={"white"} />
         </TouchableOpacity>
         <TouchableOpacity
-        onPress={()=>setShowModal(true)}
+          onPress={() => setShowModal(true)}
           style={{
             flexDirection: "row",
             columnGap: 8,
@@ -154,7 +162,11 @@ const ChatsScreen = ({ navigation, route }) => {
             >
               {community?.members?.length === 2
                 ? `You and 1 other`
-                : `You and ${community?.members?.length ? community?.members?.length - 1 : "0"} others`}
+                : `You and ${
+                    community?.members?.length
+                      ? community?.members?.length - 1
+                      : "0"
+                  } others`}
             </Text>
           </View>
         </TouchableOpacity>
@@ -244,63 +256,69 @@ const ChatsScreen = ({ navigation, route }) => {
         </ScrollView>
       </View>
 
-      <View style={styles.bottom}>
-        <TouchableOpacity
-          style={{
-            width: 40,
-            height: 40,
-            borderColor: "rgba(0,0,0,0.5)",
-            borderWidth: 0.4,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 30,
-          }}
-        >
-          <Ant color={"black"} name="plus" size={23} />
-        </TouchableOpacity>
-        <TextInput
-          multiline
-          style={{
-            color: "black",
-            fontSize: 15,
-            fontFamily: "regular",
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.05)",
-            padding: 5,
-            paddingHorizontal: 10,
-            paddingLeft: 15,
-            borderRadius: 20,
-            borderColor: "rgba(0,0,0,0.1)",
-            borderWidth: 0.8,
-          }}
-          value={message}
-          onChangeText={(text) => setMessage(text)}
-          placeholder="Message"
-          selectionColor="rgba(0,0,0,0.4)"
-          cursorColor={"black"}
-          placeholderTextColor="rgba(0,0,0,0.4)"
-          maxHeight={100}
-        />
-        <TouchableOpacity
-          onPress={() => sendMessage()}
-          disabled={
-            message.length < 1 || message.trim().length === 0 ? true : false
-          }
-          style={{
-            width: 40,
-            height: 40,
-            backgroundColor: "black",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 30,
-            opacity:
-              message.length < 1 || message.trim().length === 0 ? 0.7 : 1,
-          }}
-        >
-          <Ionicons color={"white"} name="send" size={20} />
-        </TouchableOpacity>
-      </View>
+      { community?.members?.includes(userInfo?.email) ? (
+        <View style={styles.bottom}>
+          <TouchableOpacity
+            style={{
+              width: 40,
+              height: 40,
+              borderColor: "rgba(0,0,0,0.5)",
+              borderWidth: 0.4,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 30,
+            }}
+          >
+            <Ant color={"black"} name="plus" size={23} />
+          </TouchableOpacity>
+          <TextInput
+            multiline
+            style={{
+              color: "black",
+              fontSize: 15,
+              fontFamily: "regular",
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.05)",
+              padding: 5,
+              paddingHorizontal: 10,
+              paddingLeft: 15,
+              borderRadius: 20,
+              borderColor: "rgba(0,0,0,0.1)",
+              borderWidth: 0.8,
+            }}
+            value={message}
+            onChangeText={(text) => setMessage(text)}
+            placeholder="Message"
+            selectionColor="rgba(0,0,0,0.4)"
+            cursorColor={"black"}
+            placeholderTextColor="rgba(0,0,0,0.4)"
+            maxHeight={100}
+          />
+          <TouchableOpacity
+            onPress={() => sendMessage()}
+            disabled={
+              message.length < 1 || message.trim().length === 0 ? true : false
+            }
+            style={{
+              width: 40,
+              height: 40,
+              backgroundColor: "black",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 30,
+              opacity:
+                message.length < 1 || message.trim().length === 0 ? 0.7 : 1,
+            }}
+          >
+            <Ionicons color={"white"} name="send" size={20} />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={[styles.bottom,{justifyContent:"center"}]}>
+          <Text style={{fontFamily:"regular", fontSize:12, }}>You were removed by the creator of this community</Text>
+        </View>
+      )}
     </View>
   );
 };

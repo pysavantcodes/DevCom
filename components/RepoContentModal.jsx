@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Dimensions, Image, TouchableNativeFeedback } from "react-native";
 import {
   Modal,
   View,
@@ -9,6 +10,7 @@ import {
 } from "react-native";
 import Feather from "react-native-vector-icons/Feather";
 
+const {width, height} = Dimensions.get("screen")
 const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [content, setContent] = useState([]);
@@ -44,12 +46,12 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
       setLoadingData(true);
       const response = await fetch(url);
       const data = await response.text();
-      
+
       if (data.length > 1024 * 102) {
         setSelectedItem({ data: "File size too large", path: item.path });
         setLoadingData(false);
       } else {
-        setSelectedItem({ data, path: item.path });
+        setSelectedItem({ data, path: item.path, url: item.download_url });
         setLoadingData(false);
       }
     }
@@ -112,7 +114,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
           {!content && !loadingData ? (
             <Text>No Data found</Text>
           ) : loadingData ? (
-            <View style={{paddingVertical:20}}>
+            <View style={{ paddingVertical: 20 }}>
               <ActivityIndicator color="black" size={25} />
             </View>
           ) : (
@@ -162,11 +164,10 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
         visible={selectedItem ? true : false}
         animationType="slide"
       >
-        <View
+        <ScrollView
           style={{
             backgroundColor: "white",
             padding: 20,
-            flex: 1,
             paddingBottom: 60,
           }}
         >
@@ -210,23 +211,77 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
               backgroundColor: "rgba(0,0,0,0.05)",
               marginTop: 20,
               borderRadius: 7,
+              position: "relative",
             }}
           >
-            <ScrollView
-              overScrollMode="never"
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ padding: 10 }}
-            >
-              <Text
-                selectable={true}
-                style={{ opacity: 0.9, fontFamily: "code" }}
-                selectionColor={"rgba(0,0,0,0.1)"}
-              >
-                {selectedItem?.data}
-              </Text>
-            </ScrollView>
+            {selectedItem?.path?.endsWith(".png") &&
+            selectedItem?.data !== "File size too large" ? (
+              <Image
+                style={{ width: "80%", height: 500, alignSelf: "center" }}
+                source={{ uri: selectedItem?.url }}
+                resizeMode="contain"
+              />
+            ) : (
+              <>
+              {selectedItem?.data !== "File size too large" && <TouchableOpacity
+                  style={{
+                    position: "absolute",
+                    top: 15,
+                    right: 15,
+                    backgroundColor: "rgba(0,0,0,0.08)",
+                    padding: 8,
+                    borderRadius: 7,
+                    zIndex: 3,
+                  }}
+                >
+                  <Feather name="copy" size={18} />
+                </TouchableOpacity>}
+                
+                <ScrollView
+                  overScrollMode="never"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ padding: 10, maxHeight:height*.75 }}
+                >
+                  <Text
+                    selectable={true}
+                    style={{ opacity: 0.9, fontFamily: "code" }}
+                    selectionColor={"rgba(0,0,0,0.1)"}
+                  >
+                    {selectedItem?.data}
+                  </Text>
+                </ScrollView>
+              </>
+            )}
           </View>
-        </View>
+          <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple(
+          "rgba(255,255,255,0.4)",
+          false,
+        )}>
+          <View
+            style={{
+              padding: 15,
+              backgroundColor: "black",
+              justifyContent: "center",
+              alignItems: "center",
+              marginVertical: 15,
+              borderRadius: 6,
+              columnGap:9,
+              flexDirection:"row"
+            }}
+          >
+            <Feather color={"white"} name="share-2" size={20}/>
+            <Text
+              style={{
+                color: "white",
+                fontFamily: "medium",
+                textAlign: "center",
+              }}
+            >
+              Share to a community
+            </Text>
+          </View>
+          </TouchableNativeFeedback>
+        </ScrollView>
       </Modal>
       <Modal
         onRequestClose={() => setFolderContent(null)}
@@ -282,13 +337,15 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
             contentContainerStyle={{ paddingTop: 10 }}
           >
             {!folderContent && !loadingData ? (
-              <View style={{paddingVertical:20}}>
-              <Text style={{fontSize:15, fontFamily:"medium"}}>No content found</Text>
-            </View>
+              <View style={{ paddingVertical: 20 }}>
+                <Text style={{ fontSize: 15, fontFamily: "medium" }}>
+                  No content found
+                </Text>
+              </View>
             ) : loadingData ? (
-              <View style={{paddingVertical:20}}>
-              <ActivityIndicator color="black" size={25} />
-            </View>
+              <View style={{ paddingVertical: 20 }}>
+                <ActivityIndicator color="black" size={25} />
+              </View>
             ) : (
               folderContent?.data?.map((item) => (
                 <TouchableOpacity

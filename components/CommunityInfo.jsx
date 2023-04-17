@@ -6,7 +6,7 @@ import {
   ScrollView,
   Image,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AntIcon from "react-native-vector-icons/AntDesign";
 import { TouchableOpacity } from "react-native";
 import { ImageBackground } from "react-native";
@@ -18,27 +18,37 @@ import { ActivityIndicator } from "react-native";
 import IonIcon from "react-native-vector-icons/Ionicons";
 
 const CommunityInfo = ({ community, close, navigation }) => {
-  const [scrollOffset, setScrollOffset] = useState(0);
   const [removing, setRemoving] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const imageHeight = new Animated.Value(220 - scrollOffset);
   const { allUsers } = useCommunity();
   const { userInfo } = useAuth();
-  const size = imageHeight.interpolate({
+  let scrollOffsetY = useRef(new Animated.Value(0)).current;
+  const size = scrollOffsetY.interpolate({
     inputRange: [0, 220],
-    outputRange: [17, 28],
-    extrapolate: "clamp",
-  });
-  const opacity = imageHeight.interpolate({
-    inputRange: [0, 220],
-    outputRange: [1, 0.3],
+    outputRange: [28, 17],
     extrapolate: "clamp",
   });
 
-  const handleScroll = (event) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    setScrollOffset(offsetY);
-  };
+  const Header_Max_Height = 210;
+  const Header_Min_Height = 70;
+  const Scroll_Distance = Header_Max_Height - Header_Min_Height;
+
+  const animatedHeaderHeight = scrollOffsetY.interpolate({
+    inputRange: [0, Scroll_Distance],
+    outputRange: [Header_Max_Height, Header_Min_Height],
+    extrapolate: "clamp",
+  });
+
+  const animateOpacity = scrollOffsetY.interpolate({
+    inputRange: [0, Header_Max_Height - Header_Min_Height],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+  const animateRevOpacity = scrollOffsetY.interpolate({
+    inputRange: [0, Header_Max_Height - Header_Min_Height],
+    outputRange: [0,1],
+    extrapolate: "clamp",
+  });
 
   const remove = async (email) => {
     try {
@@ -89,7 +99,7 @@ const CommunityInfo = ({ community, close, navigation }) => {
     <View>
       <Animated.View
         style={{
-          height: imageHeight,
+          height: animatedHeaderHeight,
           overflow: "hidden",
           position: "absolute",
           top: 0,
@@ -98,7 +108,6 @@ const CommunityInfo = ({ community, close, navigation }) => {
           minHeight: 80,
           zIndex: 1,
           backgroundColor: "black",
-          elevation: scrollOffset == 0 ? 0 : 8,
         }}
       >
         <ImageBackground
@@ -124,8 +133,7 @@ const CommunityInfo = ({ community, close, navigation }) => {
                     ? `rgba(0,0,0,.9)`
                     : `rgba(0,0,0,.6)`,
                 padding: 15,
-                alignItems: "center",
-                justifyContent: "center",
+                justifyContent: "flex-end",
               },
             ]}
           >
@@ -151,16 +159,33 @@ const CommunityInfo = ({ community, close, navigation }) => {
               numberOfLines={1}
               style={[
                 {
-                  fontSize: size,
+                  fontSize: 28,
                   color: "white",
-                  position: scrollOffset == 0 ? "absolute" : "relative",
-                  bottom: scrollOffset == 0 ? 15 : 0,
-                  left: scrollOffset == 0 ? 15 : 0,
                   fontFamily: "bold",
                   maxWidth: "100%",
                   width: "100%",
+                  opacity:animateOpacity
                 },
-                scrollOffset > 0 && { width: "60%", textAlign: "center" },
+              ]}
+            >
+              {community?.name}
+            </Animated.Text>
+            <Animated.Text
+              ellipsizeMode="tail"
+              numberOfLines={1}
+              style={[
+                {
+                  fontSize: 18,
+                  color: "white",
+                  fontFamily: "bold",
+                  maxWidth: "100%",
+                  width: "100%",
+                  top:0,
+                  position:"absolute",
+                  left:80, 
+                  top:30,
+                  opacity:animateRevOpacity
+                },
               ]}
             >
               {community?.name}
@@ -169,8 +194,12 @@ const CommunityInfo = ({ community, close, navigation }) => {
         </ImageBackground>
       </Animated.View>
       <ScrollView
-        contentContainerStyle={{ paddingTop: 220 }}
-        onScroll={handleScroll}
+        contentContainerStyle={{ paddingTop: 210 }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollOffsetY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
       >
         <View style={{ padding: 20 }}>
           <Text style={{ fontFamily: "bold", fontSize: 17 }}>Description</Text>
@@ -181,8 +210,11 @@ const CommunityInfo = ({ community, close, navigation }) => {
             Created
           </Text>
           <Text style={{ fontFamily: "regular", fontSize: 14, padding: 10 }}>
-            {community?.createdAt?.split(" ")[0]} at {community?.createdAt?.split(" ")[1]} {community?.createdAt?.split(" ")[2]}
+            {community?.createdAt?.split(" ")[0]} at{" "}
+            {community?.createdAt?.split(" ")[1]}{" "}
+            {community?.createdAt?.split(" ")[2]}
           </Text>
+          
           <Text
             style={{
               fontFamily: "bold",

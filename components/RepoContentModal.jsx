@@ -237,10 +237,11 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
                   <Feather name="copy" size={18} />
                 </TouchableOpacity>}
                 
+                <View style={{ padding: 10, maxHeight:height*.75 }}>
                 <ScrollView
                   overScrollMode="never"
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ padding: 10, maxHeight:height*.75 }}
+                  
                 >
                   <Text
                     selectable={true}
@@ -250,6 +251,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
                     {selectedItem?.data}
                   </Text>
                 </ScrollView>
+                </View>
               </>
             )}
           </View>

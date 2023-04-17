@@ -13,7 +13,6 @@ import { ScrollView } from "react-native";
 import { useCommunity } from "../contexts/CommunityContext";
 import { database } from "../firebase-config";
 import {
-  FieldValue,
   collection,
   doc,
   getDocs,
@@ -23,9 +22,9 @@ import {
   where,
 } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
-import { FlatList } from "react-native";
 import { Modal } from "react-native";
 import CommunityInfo from "../components/CommunityInfo";
+import ImageView from "react-native-image-viewing";
 
 const ChatsScreen = ({ navigation, route }) => {
   const { id } = route.params;
@@ -37,6 +36,9 @@ const ChatsScreen = ({ navigation, route }) => {
   const listRef = useRef();
   const { allUsers } = useCommunity();
   const [showModal, setShowModal] = useState(false);
+  const [showImages, setShowImages] = useState(false);
+  const [imgIndex, setImgIndex] = useState(0);
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     const getCommunity = async () => {
@@ -72,6 +74,17 @@ const ChatsScreen = ({ navigation, route }) => {
     readMessage();
   }, [community]);
 
+  useEffect(() => {
+    const getAllImages = community?.messages?.filter((msg) => {
+      return msg?.message?.endsWith(".png") || msg?.message?.endsWith(".jpg");
+    });
+    const tempImg = [];
+    getAllImages?.forEach((msg) => {
+      tempImg.push({ uri: msg?.message });
+    });
+    setImages(tempImg);
+  }, [community]);
+
   const sendMessage = async () => {
     const newMessage = {
       message: message.trim(),
@@ -92,8 +105,22 @@ const ChatsScreen = ({ navigation, route }) => {
     }
   };
 
+  const displayImage = (msg) => {
+    function findMovies(item) {
+      return item.uri === msg;
+    }
+    setImgIndex(images.findIndex(findMovies));
+    setShowImages(true);
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
+      <ImageView
+        images={images}
+        imageIndex={imgIndex}
+        visible={showImages}
+        onRequestClose={() => setShowImages(false)}
+      />
       <Modal
         animationType="slide"
         onRequestClose={() => setShowModal(false)}
@@ -225,9 +252,18 @@ const ChatsScreen = ({ navigation, route }) => {
                         user[0].email !== userInfo.email
                           ? "rgba(0,0,0,0.05)"
                           : "rgba(0,0,0,1)",
-                      padding: 10,
-                      paddingHorizontal: 15,
+                      padding:
+                        item.message.endsWith(".png") ||
+                        item.message.endsWith(".jpg")
+                          ? 0
+                          : 10,
+                      paddingHorizontal:
+                        item.message.endsWith(".png") ||
+                        item.message.endsWith(".jpg")
+                          ? 0
+                          : 15,
                       borderRadius: 20,
+                      overflow: "hidden",
                     }}
                   >
                     {user[0].email !== userInfo.email && (
@@ -235,20 +271,90 @@ const ChatsScreen = ({ navigation, route }) => {
                         style={{
                           fontFamily: "medium",
                           fontSize: 12.5,
+                          padding:
+                            item.message.endsWith(".png") ||
+                            item.message.endsWith(".jpg")
+                              ? 10
+                              : 0,
                         }}
                       >
                         {user[0].userName}
                       </Text>
                     )}
-                    <Text
-                      style={{
-                        fontFamily: "regular",
-                        color:
-                          user[0].email === userInfo.email ? "white" : "black",
-                      }}
-                    >
-                      {item.message}
-                    </Text>
+                    {item.message.startsWith(
+                      "https://raw.githubusercontent.com/"
+                    ) &&
+                    !item.message.endsWith(".png") &&
+                    !item.message.endsWith(".png") ? (
+                      <TouchableOpacity
+                        style={{
+                          padding: 5,
+                          borderWidth: 1,
+                          marginVertical:
+                            user[0].email !== userInfo.email ? 5 : 0,
+                          borderRadius: 5,
+                          borderColor:
+                            user[0].email !== userInfo.email
+                              ? "rgba(0,0,0,0.4)"
+                              : "black",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: "medium",
+                            fontSize: 16,
+                            color:
+                              user[0].email !== userInfo.email
+                                ? "black"
+                                : "white",
+                          }}
+                        >
+                          {
+                            item.message?.split("/")[
+                              item.message?.split("/").length - 1
+                            ]
+                          }
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: "medium",
+                            fontSize: 11,
+                            opacity: 0.6,
+                            color:
+                              user[0].email !== userInfo.email
+                                ? "black"
+                                : "white",
+                          }}
+                        >
+                          {item.message?.split("/")[3]}/
+                          {item.message?.split("/")[4]}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : item.message.endsWith(".png") ||
+                      item.message.endsWith(".jpg") ? (
+                      <TouchableOpacity
+                        onPress={() => {
+                          displayImage(item.message);
+                        }}
+                      >
+                        <Image
+                          source={{ uri: item.message }}
+                          style={{ width: 200, height: 200 }}
+                        />
+                      </TouchableOpacity>
+                    ) : (
+                      <Text
+                        style={{
+                          fontFamily: "regular",
+                          color:
+                            user[0].email === userInfo.email
+                              ? "white"
+                              : "black",
+                        }}
+                      >
+                        {item.message}
+                      </Text>
+                    )}
                   </View>
                 </View>
               );
@@ -256,7 +362,7 @@ const ChatsScreen = ({ navigation, route }) => {
         </ScrollView>
       </View>
 
-      { community?.members?.includes(userInfo?.email) ? (
+      {community?.members?.includes(userInfo?.email) ? (
         <View style={styles.bottom}>
           <TouchableOpacity
             style={{
@@ -315,8 +421,10 @@ const ChatsScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={[styles.bottom,{justifyContent:"center"}]}>
-          <Text style={{fontFamily:"regular", fontSize:12, }}>You were removed by the creator of this community</Text>
+        <View style={[styles.bottom, { justifyContent: "center" }]}>
+          <Text style={{ fontFamily: "regular", fontSize: 12 }}>
+            You were removed by the creator of this community
+          </Text>
         </View>
       )}
     </View>

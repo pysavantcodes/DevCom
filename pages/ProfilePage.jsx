@@ -118,11 +118,11 @@ const ProfilePage = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "white" }}>
+    <View style={{ flex: 1, backgroundColor: "black" }}>
       <View
         style={{
           padding: 18,
-          backgroundColor: "white",
+          backgroundColor: "black",
           zIndex: 9,
           elevation: 2,
         }}
@@ -130,12 +130,14 @@ const ProfilePage = () => {
         <Text
           style={{
             fontSize: 20,
+            color:"white",
             fontFamily: "bold",
           }}
         >
           My Profile
         </Text>
       </View>
+      <View style={{backgroundColor:"white", flex:1, borderTopLeftRadius:20,borderTopRightRadius:20}}>
       <ScrollView
         contentContainerStyle={{ padding: 15 }}
         overScrollMode="never"
@@ -243,6 +245,7 @@ const ProfilePage = () => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+      </View>
     </View>
   );
 };

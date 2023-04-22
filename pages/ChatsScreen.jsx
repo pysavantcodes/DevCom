@@ -204,6 +204,7 @@ const ChatsScreen = ({ navigation, route }) => {
           flex: 1,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
+          overflow:"hidden"
         }}
       >
         <ScrollView
@@ -262,7 +263,9 @@ const ChatsScreen = ({ navigation, route }) => {
                         item.message.endsWith(".jpg")
                           ? 0
                           : 15,
-                      borderRadius: 20,
+                      borderRadius: 15,
+                      borderTopRightRadius:user[0].email !== userInfo.email ? 15 : 0,
+                      borderTopLeftRadius:user[0].email !== userInfo.email ? 0 : 15,
                       overflow: "hidden",
                     }}
                   >

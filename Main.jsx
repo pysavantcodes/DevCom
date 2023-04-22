@@ -2,12 +2,13 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import ChatHome from "./pages/ChatHome";
 import FullScreenLoader from "./components/FullScreenLoader";
 import { StatusBar } from "expo-status-bar";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import {
   Platform,
   StyleSheet,
@@ -27,76 +28,61 @@ import BSheet from "./components/BottomSheet";
 import ChatsScreen from "./pages/ChatsScreen";
 import LoadingUserPage from "./components/LoadingUserPage";
 import { BottomSheet } from "react-native-btr";
+import { useTheme } from 'react-native-paper';
+import { useCommunity } from "./contexts/CommunityContext";
 
-const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+
+
+const Stack = createNativeStackNavigator(); 
+const Tab = createMaterialBottomTabNavigator();
 
 function Home({navigation}) {
+  const {communities} = useCommunity();
+  const [unRead, setUnRead] = useState(0);
+  const {userInfo} = useAuth()
+
+  useEffect(() => {
+    let temp = 0
+    communities?.filter((com) => com.members.includes(userInfo?.email)).forEach((com)=>{
+      temp += com?.messages?.filter((msg)=>{
+        return !msg?.readBy?.includes(userInfo?.email)
+       }).length;
+    })
+    setUnRead(temp)
+  }, [communities])
+  
   return (
     <Tab.Navigator
       keyboardHidesTabBar={true}
-      screenOptions={{
-        tabBarShowLabel: false,
-        headerShown: false,
-        tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          paddingVertical: Platform.OS === "ios" ? 20 : 0,
-          backgroundColor: "black",
-          elevation: 0,
-          position: "absolute",
-          zIndex: 99,
-          bottom: 0,
-          left: 0,
-          ...styles.shadow,
-
-          height: 74,
-        },
-      }}
+      labeled={true}
+      activeColor="#fff"
+      inactiveColor="#fff"
+      labelStyle={{ fontSize: 12, fontFamily:"regular", }}
+      backgroundColor="#000"
+      barStyle={{ backgroundColor: '#000',  alignItems:"center", paddingHorizontal:10 }}
+      sceneAnimationType="opacity"
     >
       <Tab.Screen
         name="Chats"
         options={{
-          tabBarIcon: ({ focused }) => (
-            <TouchableOpacity
-            onPress={() => navigation.navigate("Chats")}
-              style={{
-                alignItems: "center",
-                flexDirection: "column",
-                opacity: 0.5,
-                ...(focused && { opacity: 1 }),
-              }}
-            >
+          tabBarBadge: unRead > 0 ? unRead : null, 
+          tabBarBadgeStyle: { backgroundColor: "white", color:"white" },
+          tabBarLabel: <Text style={styles.tabBarLabel}>Communities</Text>,
+          tabBarIcon: ({ focused, color }) => (
+            
               <IonIcon color={"white"} size={23} name="ios-people-outline" />
-              <Text
-                style={{ fontSize: 10, color: "white", fontFamily: "regular" }}
-              >
-                Communities
-              </Text>
-            </TouchableOpacity>
+              
           ),
         }}
         component={ChatHome}
       />
       <Tab.Screen
         name="Search"
-        options={{
+        options={{tabBarLabel: <Text style={styles.tabBarLabel}>Explore</Text>,
           tabBarIcon: ({ focused }) => (
-            <TouchableOpacity
-            onPress={() => navigation.navigate("Search")}
-              style={{
-                alignItems: "center",
-                flexDirection: "column",
-                opacity: 0.5,
-                ...(focused && { opacity: 1 }),
-              }}
-            >
-              <IonIcon color={"white"} size={23} name="ios-compass-outline" />
-              <Text
-                style={{ fontSize: 10, color: "white", fontFamily: "regular" }}
-              >
-                Explore
-              </Text>
-            </TouchableOpacity>
+           
+            <AntIcon color={"white"} size={23} name="search1" />
+             
           ),
         }}
         component={SearchPage}
@@ -104,27 +90,15 @@ function Home({navigation}) {
       <Tab.Screen
         name="Create"
         options={{
+          tabBarLabel: <Text style={styles.tabBarLabel}>Create</Text>,
           tabBarIcon: ({ focused }) => (
-            <TouchableOpacity
-            onPress={() => navigation.navigate("Create")}
-              style={{
-                alignItems: "center",
-                flexDirection: "column",
-                opacity: 0.5,
-                ...(focused && { opacity: 1 }),
-              }}
-            >
+           
               <IonIcon
                 color={"white"}
                 size={23}
-                name="ios-add-circle-outline"
+                name="create-outline"
               />
-              <Text
-                style={{ fontSize: 10, color: "white", fontFamily: "regular" }}
-              >
-                Create
-              </Text>
-            </TouchableOpacity>
+           
           ),
         }}
         component={BSheet}
@@ -133,23 +107,11 @@ function Home({navigation}) {
       <Tab.Screen
         name="Github"
         options={{
+          tabBarLabel: <Text style={styles.tabBarLabel}>Github</Text>,
           tabBarIcon: ({ focused }) => (
-            <TouchableOpacity
-            onPress={() => navigation.navigate("Github")}
-              style={{
-                alignItems: "center",
-                flexDirection: "column",
-                opacity: 0.5,
-                ...(focused && { opacity: 1 }),
-              }}
-            >
+           
               <AntIcon color={"white"} size={23} name="github" />
-              <Text
-                style={{ fontSize: 10, color: "white", fontFamily: "regular" }}
-              >
-                Github
-              </Text>
-            </TouchableOpacity>
+            
           ),
         }}
         component={Github}
@@ -158,23 +120,11 @@ function Home({navigation}) {
       <Tab.Screen
         name="Profile"
         options={{
+          tabBarLabel: <Text style={styles.tabBarLabel}>Profile</Text>,
           tabBarIcon: ({ focused }) => (
-            <TouchableOpacity
-            onPress={() => navigation.navigate("Profile")}
-              style={{
-                alignItems: "center",
-                flexDirection: "column",
-                opacity: 0.5,
-                ...(focused && { opacity: 1 }),
-              }}
-            >
+          
               <FthIcon color={"white"} size={23} name="user" />
-              <Text
-                style={{ fontSize: 10, color: "white", fontFamily: "regular" }}
-              >
-                Profile
-              </Text>
-            </TouchableOpacity>
+            
           ),
         }}
         component={ProfilePage}
@@ -307,6 +257,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 20,
     paddingHorizontal: 18,
+  },
+  tabBarLabel: {
+    fontSize: 11,
+    textAlign: 'center',
+    fontFamily: 'regular',
+    color:"white"
   },
 });
 

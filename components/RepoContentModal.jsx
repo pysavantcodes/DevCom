@@ -256,7 +256,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
             )}
           </View>
           <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple(
-          "rgba(255,255,255,0.4)",
+          "rgba(255,255,255,0.35)",
           false,
         )}>
           <View

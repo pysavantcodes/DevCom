@@ -78,12 +78,14 @@ const ChatHome = ({ navigation }) => {
     setMyCommunities(
       communities.filter((com) => com.members.includes(userInfo?.email))
     );
+    
   }, [communities, userInfo]);
 
   useEffect(() => {
     if (selectedItems.length < 1) {
       setSelectable(false);
     }
+    
   }, [selectedItems]);
 
   return (
@@ -236,33 +238,7 @@ const ChatHome = ({ navigation }) => {
           </View>
         )}
 
-        {/* <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            overflow: "hidden",
-            flexDirection: "column",
-          }}
-          overScrollMode={"never"}
-          horizontal={false}
-        >
-          {myCommunities.length !== 0 &&
-            myCommunities.map((data, index) => {
-              return (
-                <CommunityCard
-                  longPressed={() => handleLongPress(data.id)}
-                  name={data.name}
-                  image={data.profileImage}
-                  keyProp={index}
-                  selected={selectedItems.includes(data.id) ? true : false}
-                  clicked={() =>
-                    selectable
-                      ? handlePress(data.id)
-                      : navigation.navigate("ChatScreen",{ id:data.id})
-                  }
-                />
-              );
-            })}
-        </ScrollView> */}
+        
       </SafeAreaView>
     </View>
   );

@@ -187,7 +187,6 @@ const BSheet = ({ navigation }) => {
       overScrollMode={"never"}
       contentContainerStyle={[
         styles.container,
-        { paddingBottom: keyboardHeight === 0 ? 74 : 0 },
       ]}
     >
       <View

@@ -5,6 +5,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TouchableNativeFeedback,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -178,12 +179,20 @@ const Register = ({ navigation }) => {
               {/* <TouchableOpacity><Text style={{ fontSize: 12, fontFamily: "regular", color: "rgba(0,0,0,0.8)" }}>Forgot Password?</Text></TouchableOpacity> */}
             </View>
           </View>
-          <TouchableOpacity
-            disabled={loading}
+          <TouchableNativeFeedback disabled={loading}
             onPress={() => {
               register();
-            }}
-            style={[styles.button, loading && { opacity: 0.7 }]}
+            }} background={TouchableNativeFeedback.Ripple(
+              "rgba(255,255,255,0.35)",
+              false,
+            )}>
+          <View
+            
+            style={[
+              styles.button,
+              
+              loading && { opacity: 0.7 },
+            ]}
           >
             {loading ? (
               <ActivityIndicator color={"white"} />
@@ -192,13 +201,15 @@ const Register = ({ navigation }) => {
                 Sign Up
               </Text>
             )}
-          </TouchableOpacity>
+          </View>
+          </TouchableNativeFeedback>
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
               paddingBottom: 10,
+              marginTop: 9 
             }}
           >
             <Text style={{ fontFamily: "regular", marginRight: 3 }}>

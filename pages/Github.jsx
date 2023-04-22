@@ -180,7 +180,6 @@ const Github = () => {
             <ScrollView
               overScrollMode="never"
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 80 }}
               refreshControl={
                 <RefreshControl
                   refreshing={githubUserDetails ? false : true}

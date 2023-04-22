@@ -5,12 +5,20 @@ import AuthProvider from "./contexts/AuthContext";
 import CommunityProvider from "./contexts/CommunityContext";
 import Main from "./Main";
 import GithubProvider from "./contexts/GithubContext";
+import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 
 export default function App() {
+  const theme = {
+    colors: {
+      ...DefaultTheme.colors,
+      secondaryContainer: 'rgba(255,255,255,0.2)',
+      notification:"blue"
+    },
+  };
   const [fontsLoaded] = useFonts({
-    bold: require("./assets/fonts/Inter-Bold.ttf"),
-    medium: require("./assets/fonts/Inter-Medium.ttf"),
-    regular: require("./assets/fonts/Inter-Regular.ttf"),
+    bold: require("./assets/fonts/bold.otf"),
+    medium: require("./assets/fonts/medium.otf"),
+    regular: require("./assets/fonts/regular.otf"),
     code: require("./assets/fonts/Cascadia.ttf"),
   });
 
@@ -24,7 +32,8 @@ export default function App() {
     return null;
   }
   return (
-    <AuthProvider>
+    <PaperProvider theme={theme}>
+      <AuthProvider>
       
       <CommunityProvider>
         <GithubProvider>
@@ -32,5 +41,7 @@ export default function App() {
         </GithubProvider>
       </CommunityProvider>
     </AuthProvider>
-  );
+  
+    </PaperProvider>
+  )
 }

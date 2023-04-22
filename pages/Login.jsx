@@ -7,6 +7,7 @@ import {
   View,
   TouchableOpacity,
   ActivityIndicator,
+  TouchableNativeFeedback,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import Inputs from "../components/Inputs";
@@ -22,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import { Image } from "react-native";
 import { Dimensions } from "react-native";
+import { TouchableRipple } from "react-native-paper";
 
 const { width, height } = Dimensions.get("screen");
 const Register = ({ navigation }) => {
@@ -196,11 +198,15 @@ const Register = ({ navigation }) => {
               </TouchableOpacity>
             </View>
           </View>
-          <TouchableOpacity
-            disabled={loading}
+          <TouchableNativeFeedback disabled={loading}
             onPress={() => {
               login();
-            }}
+            }} background={TouchableNativeFeedback.Ripple(
+              "rgba(255,255,255,0.35)",
+              false,
+            )}>
+          <View
+            
             style={[
               styles.button,
               { marginBottom: 9 },
@@ -214,30 +220,37 @@ const Register = ({ navigation }) => {
                 Sign In
               </Text>
             )}
-          </TouchableOpacity>
+          </View>
+          </TouchableNativeFeedback>
           <Text style={{ fontFamily: "medium", textAlign: "center" }}>or</Text>
-          <TouchableOpacity
+          <View>
+            
+            <TouchableRipple
             disabled={loading || sendingEmail}
-            style={[
-              styles.button,
-              sendingEmail && { opacity: 0.5 },
-              {
-                backgroundColor: "white",
-                borderWidth: 1,
-                marginTop: 9,
-                marginBottom: 25,
-              },
-            ]}
             onPress={() => forgotPassword()}
-          >
-            {sendingEmail ? (
-              <ActivityIndicator color={"black"} />
-            ) : (
-              <Text style={{ fontFamily: "regular", color: "black" }}>
-                Forgot Password
-              </Text>
-            )}
-          </TouchableOpacity>
+            rippleColor="rgba(0,0,0, 0.1)"
+            borderless
+              style={[
+                styles.button,
+                sendingEmail && { opacity: 0.5 },
+                {
+                  backgroundColor: "white",
+                  borderWidth: 1,
+                  marginTop: 9,
+                  marginBottom: 25,
+                },
+              ]}
+              
+            >
+              {sendingEmail ? (
+                <ActivityIndicator color={"black"} />
+              ) : (
+                <Text style={{ fontFamily: "regular", color: "black" }}>
+                  Forgot Password
+                </Text>
+              )}
+            </TouchableRipple>
+          </View>
           <View
             style={{
               flexDirection: "row",

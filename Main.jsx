@@ -7,7 +7,6 @@ import { useAuth } from "./contexts/AuthContext";
 import ChatHome from "./pages/ChatHome";
 import FullScreenLoader from "./components/FullScreenLoader";
 import { StatusBar } from "expo-status-bar";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import {
   Platform,
@@ -16,7 +15,6 @@ import {
   Text,
   BackHandler,
   TouchableOpacity,
-  TouchableNativeFeedback
 } from "react-native";
 import IonIcon from "react-native-vector-icons/Ionicons";
 import FthIcon from "react-native-vector-icons/Feather";
@@ -28,7 +26,6 @@ import BSheet from "./components/BottomSheet";
 import ChatsScreen from "./pages/ChatsScreen";
 import LoadingUserPage from "./components/LoadingUserPage";
 import { BottomSheet } from "react-native-btr";
-import { useTheme } from 'react-native-paper';
 import { useCommunity } from "./contexts/CommunityContext";
 
 

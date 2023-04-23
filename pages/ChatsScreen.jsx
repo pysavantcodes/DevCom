@@ -25,6 +25,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Modal } from "react-native";
 import CommunityInfo from "../components/CommunityInfo";
 import ImageView from "react-native-image-viewing";
+import { Button, Divider, IconButton, Menu } from "react-native-paper";
 
 const ChatsScreen = ({ navigation, route }) => {
   const { id } = route.params;
@@ -39,6 +40,11 @@ const ChatsScreen = ({ navigation, route }) => {
   const [showImages, setShowImages] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
   const [images, setImages] = useState([]);
+  const [visible, setVisible] = useState(false);
+
+  const openMenu = () => setVisible(true);
+
+  const closeMenu = () => setVisible(false);
 
   useEffect(() => {
     const getCommunity = async () => {
@@ -133,19 +139,11 @@ const ChatsScreen = ({ navigation, route }) => {
         />
       </Modal>
       <View style={styles.head}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Chats")}
-          style={{
-            width: 40,
-            height: 40,
-            backgroundColor: "rgba(255,255,255,0.08)",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 40,
-          }}
-        >
-          <Ant name="arrowleft" size={20} color={"white"} />
-        </TouchableOpacity>
+        <IconButton onPress={() => navigation.navigate("Chats")} icon="arrow-left"
+            iconColor={"white"}
+            size={23}
+            style={{backgroundColor:"rgba(255,255,255,0.08)", height:45, width:45,borderRadius:45, margin:0}}/>
+       
         <TouchableOpacity
           onPress={() => setShowModal(true)}
           style={{
@@ -197,6 +195,18 @@ const ChatsScreen = ({ navigation, route }) => {
             </Text>
           </View>
         </TouchableOpacity>
+        {/* <Menu
+          visible={visible}
+          onDismiss={closeMenu}
+          contentStyle={{backgroundColor:"white",}}
+          anchor={<IconButton
+            icon="dots-vertical"
+            iconColor={"white"}
+            size={23}
+            onPress={openMenu}
+          />}>
+          <Menu.Item contentStyle={{alignItems:"center"}} titleStyle={{fontFamily:"regular", fontSize:14}} leadingIcon="exit-to-app" onPress={closeMenu} title="Leave Community" />
+        </Menu> */}
       </View>
       <View
         style={{
@@ -453,9 +463,9 @@ const styles = StyleSheet.create({
   head: {
     flexDirection: "row",
     padding: 15,
-    columnGap: 14,
+    columnGap: 11,
     borderBottomColor: "rgba(0,0,0,0.1)",
     borderBottomWidth: 0.8,
     paddingVertical: 12,
-  },
+    alignItems:"center"  },
 });

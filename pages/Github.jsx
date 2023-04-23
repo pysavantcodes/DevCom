@@ -2,25 +2,33 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  Button,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
+  TextInput,
+  Image
 } from "react-native";
-import { Image } from "react-native";
-import { TextInput } from "react-native";
-import { TouchableOpacity } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 import { Snackbar } from "@react-native-material/core";
-import { ActivityIndicator } from "react-native";
-import { doc, updateDoc } from "firebase/firestore";
+import { arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { database } from "../firebase-config";
 import { useGithub } from "../contexts/GithubContext";
 import LoadingUserPage from "../components/LoadingUserPage";
 import Feather from "react-native-vector-icons/Feather";
 import RepoContentModal from "../components/RepoContentModal";
+import {
+  Dialog,
+  List,
+  Portal,
+  Button,
+  Checkbox,
+  Avatar,
+} from "react-native-paper";
+import { useCommunity } from "../contexts/CommunityContext";
 
-const Github = () => {
+const Github = ({navigation}) => {
   const { userInfo } = useAuth();
   const [accName, setAccName] = useState("");
   const [snackBarData, setSnackBarData] = useState("");
@@ -28,7 +36,24 @@ const Github = () => {
   const [creating, setCreating] = useState(false);
   const [repo, setRepo] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [myCommunities, setMyCommunities] = useState([]);
+  const [visible, setVisible] = useState(false);
+  const [url, setUrl] = useState("")
+  const { communities } = useCommunity();
+  const [sharing, setSharing] = useState(false)
+
+  const handleItemPress = (item) => {
+    const index = selectedItems.indexOf(item);
+    if (index === -1) {
+      setSelectedItems([...selectedItems, item]);
+    } else {
+      setSelectedItems(selectedItems.filter((_, i) => i !== index));
+    }
+  };
+
+  const hideDialog = () => setVisible(false);
+
   const {
     githubUserDetails,
     fetchingUserDetails,
@@ -53,8 +78,6 @@ const Github = () => {
     }
   };
 
-  
-
   useEffect(() => {
     if (showSnackBar === true) {
       setTimeout(() => {
@@ -62,6 +85,30 @@ const Github = () => {
       }, 1000);
     }
   }, [showSnackBar]);
+  useEffect(() => {
+    setMyCommunities(
+      communities.filter((com) => com.members.includes(userInfo?.email))
+    );
+  }, [communities, userInfo]);
+
+  const shareTo = async()=>{
+    const newMessage ={
+      message: url,
+      sender: userInfo.email,
+      time: Date.now(),
+    }
+    setSharing(true)
+    selectedItems.forEach(async (item) => {
+      const dt = communities?.filter((el) => el?.id == item)[0];
+      await updateDoc(doc(database, "communities", item), {
+        messages: arrayUnion(newMessage),
+      }).then(async () => {
+       setVisible(false);
+       setSelectedItems([]);
+       setSharing(false)
+      });
+    });
+  }
 
   return (
     <ScrollView
@@ -74,6 +121,75 @@ const Github = () => {
         justifyContent: !userInfo?.githubAcc ? "center" : "flex-start",
       }}
     >
+      <Portal>
+        <Dialog
+          theme={{
+            colors: {
+              backdrop: "rgba(0,0,0,0.5)",
+            },
+          }}
+          style={{ backgroundColor: "white" }}
+          visible={visible}
+          onDismiss={hideDialog}
+        >
+          <Dialog.Title style={{ fontFamily: "medium" }}>Share to</Dialog.Title>
+          <Dialog.ScrollArea>
+            <ScrollView>
+              <List.Section style={{ margin: 0 }}>
+              {sharing ? <ActivityIndicator style={{padding:10}} size={25} color={"black"}/> : myCommunities?.map((com) => (
+                  <List.Item
+                    key={com?.id}
+                    title={com?.name}
+                    description={`${com?.members?.length} members`}
+                    onPress={() => handleItemPress(com?.id)}
+                    titleStyle={{ margin: 0, fontFamily: "medium" }}
+                    style={{paddingRight:0}}
+                    descriptionStyle={{ fontFamily: "regular" }}
+                    left={() => (
+                      <Avatar.Image
+                        size={40}
+                        source={{ uri: com?.profileImage }}
+                      />
+                    )}
+                    right={() => (
+                      <Checkbox
+                      
+                        color="black"
+                        status={
+                          selectedItems.includes(com?.id)
+                            ? "checked"
+                            : "unchecked"
+                        }
+                      />
+                    )}
+                  />
+                ))}
+                
+              </List.Section>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button
+              style={{ backgroundColor: "rgba(0,0,0,0.07)" }}
+              labelStyle={{
+                color: "black",
+                fontFamily: "regular",
+                paddingHorizontal: 10,
+              }}
+              onPress={() => setVisible(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              labelStyle={{ color: "black", fontFamily: "regular", paddingHorizontal:5, opacity:selectedItems.length  > 0 ? 1 : 0.5 }}
+              onPress={shareTo}
+              disabled={selectedItems.length > 0  ?false : true}
+            >
+              Share
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
       {!userInfo?.githubAcc ? (
         <View
           style={{
@@ -137,12 +253,15 @@ const Github = () => {
         </View>
       ) : !fetchingUserDetails && userInfo?.githubAcc ? (
         <View style={{ flex: 1, width: "100%" }}>
-          {modalOpen && <RepoContentModal
-            isOpen={modalOpen}
-            repoOwner={userInfo?.githubAcc}
-            repoName={repo}
-            onClose={() => setModalOpen(false)}
-          />}
+          {modalOpen && (
+            <RepoContentModal
+              isOpen={modalOpen}
+              repoOwner={userInfo?.githubAcc}
+              repoName={repo}
+              onClose={() => setModalOpen(false)}
+              share={(dt) => {setVisible(true); setUrl(dt)}}
+            />
+          )}
           <View
             style={{
               padding: 20,
@@ -152,7 +271,12 @@ const Github = () => {
             }}
           >
             <Image
-              style={{ width: 80, height: 80, borderRadius: 10, resizeMode:"cover" }}
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 10,
+                resizeMode: "cover",
+              }}
               source={{ uri: githubUserDetails?.avatar_url }}
             />
             <View>
@@ -286,7 +410,7 @@ const Github = () => {
           </View>
         </View>
       ) : (
-        <LoadingUserPage style={{paddingBottom: 110,}} />
+        <LoadingUserPage style={{ paddingBottom: 110 }} />
       )}
       {showSnackBar && (
         <Snackbar

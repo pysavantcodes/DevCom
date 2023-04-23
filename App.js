@@ -5,14 +5,14 @@ import AuthProvider from "./contexts/AuthContext";
 import CommunityProvider from "./contexts/CommunityContext";
 import Main from "./Main";
 import GithubProvider from "./contexts/GithubContext";
-import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
+import { Provider as PaperProvider, DefaultTheme } from "react-native-paper";
 
 export default function App() {
   const theme = {
     colors: {
       ...DefaultTheme.colors,
-      secondaryContainer: 'rgba(255,255,255,0.2)',
-      notification:"blue"
+      secondaryContainer: "rgba(255,255,255,0.2)",
+      notification: "red",
     },
   };
   const [fontsLoaded] = useFonts({
@@ -34,14 +34,12 @@ export default function App() {
   return (
     <PaperProvider theme={theme}>
       <AuthProvider>
-      
-      <CommunityProvider>
-        <GithubProvider>
-        <Main />
-        </GithubProvider>
-      </CommunityProvider>
-    </AuthProvider>
-  
+        <CommunityProvider>
+          <GithubProvider>
+            <Main />
+          </GithubProvider>
+        </CommunityProvider>
+      </AuthProvider>
     </PaperProvider>
-  )
+  );
 }

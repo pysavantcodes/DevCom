@@ -10,12 +10,14 @@ import {
 } from "react-native";
 import Feather from "react-native-vector-icons/Feather";
 
-const {width, height} = Dimensions.get("screen")
-const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
+const { width, height } = Dimensions.get("screen");
+
+const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [content, setContent] = useState([]);
   const [folderContent, setFolderContent] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
+  
 
   useEffect(() => {
     const fetchRepoContent = async () => {
@@ -63,6 +65,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
       visible={isOpen}
       animationType="slide"
     >
+      
       <View
         style={{
           backgroundColor: "white",
@@ -223,67 +226,72 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose }) => {
               />
             ) : (
               <>
-              {selectedItem?.data !== "File size too large" && <TouchableOpacity
-                  style={{
-                    position: "absolute",
-                    top: 15,
-                    right: 15,
-                    backgroundColor: "rgba(0,0,0,0.08)",
-                    padding: 8,
-                    borderRadius: 7,
-                    zIndex: 3,
-                  }}
-                >
-                  <Feather name="copy" size={18} />
-                </TouchableOpacity>}
-                
-                <View style={{ padding: 10, maxHeight:height*.75 }}>
-                <ScrollView
-                  overScrollMode="never"
-                  showsVerticalScrollIndicator={false}
-                  
-                >
-                  <Text
-                    selectable={true}
-                    style={{ opacity: 0.9, fontFamily: "code" }}
-                    selectionColor={"rgba(0,0,0,0.1)"}
+                {selectedItem?.data !== "File size too large" && (
+                  <TouchableOpacity
+                    style={{
+                      position: "absolute",
+                      top: 15,
+                      right: 15,
+                      backgroundColor: "rgba(0,0,0,0.08)",
+                      padding: 8,
+                      borderRadius: 7,
+                      zIndex: 3,
+                    }}
                   >
-                    {selectedItem?.data}
-                  </Text>
-                </ScrollView>
+                    <Feather name="copy" size={18} />
+                  </TouchableOpacity>
+                )}
+
+                <View style={{ padding: 10, maxHeight: height * 0.75 }}>
+                  <ScrollView
+                    overScrollMode="never"
+                    showsVerticalScrollIndicator={false}
+                  >
+                    <Text
+                      selectable={true}
+                      style={{ opacity: 0.9, fontFamily: "code" }}
+                      selectionColor={"rgba(0,0,0,0.1)"}
+                    >
+                      {selectedItem?.data}
+                    </Text>
+                  </ScrollView>
                 </View>
               </>
             )}
           </View>
-          <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple(
-          "rgba(255,255,255,0.35)",
-          false,
-        )}>
-          <View
-            style={{
-              padding: 15,
-              backgroundColor: "black",
-              justifyContent: "center",
-              alignItems: "center",
-              marginVertical: 15,
-              borderRadius: 6,
-              columnGap:9,
-              flexDirection:"row"
-            }}
+          <TouchableNativeFeedback
+            background={TouchableNativeFeedback.Ripple(
+              "rgba(255,255,255,0.35)",
+              false
+            )}
+            onPress={()=>{share(selectedItem.url);onClose()}}
           >
-            <Feather color={"white"} name="share-2" size={20}/>
-            <Text
+            <View
               style={{
-                color: "white",
-                fontFamily: "medium",
-                textAlign: "center",
+                padding: 15,
+                backgroundColor: "black",
+                justifyContent: "center",
+                alignItems: "center",
+                marginVertical: 15,
+                borderRadius: 6,
+                columnGap: 9,
+                flexDirection: "row",
               }}
             >
-              Share to a community
-            </Text>
-          </View>
+              <Feather color={"white"} name="share-2" size={20} />
+              <Text
+                style={{
+                  color: "white",
+                  fontFamily: "medium",
+                  textAlign: "center",
+                }}
+              >
+                Share to a community
+              </Text>
+            </View>
           </TouchableNativeFeedback>
         </ScrollView>
+        
       </Modal>
       <Modal
         onRequestClose={() => setFolderContent(null)}

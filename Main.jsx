@@ -58,6 +58,7 @@ function Home({navigation}) {
       backgroundColor="#000"
       barStyle={{ backgroundColor: '#000',  alignItems:"center", paddingHorizontal:10 }}
       sceneAnimationType="opacity"
+      sceneAnimationEnabled={true}
     >
       <Tab.Screen
         name="Chats"

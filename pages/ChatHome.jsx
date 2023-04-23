@@ -8,21 +8,19 @@ import {
   SafeAreaView,
   RefreshControl,
   Animated,
-  Alert
+  Alert,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import IonIcon from "react-native-vector-icons/Ionicons";
-import AntIcon from "react-native-vector-icons/AntDesign";
-import Feather from "react-native-vector-icons/Feather";
 import { useAuth } from "../contexts/AuthContext";
 import ShimmerLoader from "../components/ShimmerLoader";
 import CommunityCard from "../components/CommunityCard";
 import { useCommunity } from "../contexts/CommunityContext";
-import { log } from "react-native-reanimated";
 import { FlatList } from "react-native";
 import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { database } from "../firebase-config";
 import { Image } from "react-native";
+import { IconButton } from "react-native-paper";
 
 const { height, width } = Dimensions.get("screen");
 const ChatHome = ({ navigation }) => {
@@ -32,32 +30,45 @@ const ChatHome = ({ navigation }) => {
   const [selectable, setSelectable] = useState(false);
   const [myCommunities, setMyCommunities] = useState([]);
 
-  const leaveCommunity = ()=>{
-    Alert.alert(`Dismiss ${selectedItems.length > 1 ? "communities?" : "community?"}`, `Are you sure you want to leave ${selectedItems.length > 1 ? "these" : "this"} ${selectedItems.length > 1 ? "communities?" : "community?"}`, [
-      {
-        text: 'NO',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      {text: 'YES', onPress: () => {
-        selectedItems.forEach(async(item)=>{
-          const dt = communities?.filter((el)=>el?.id == item)[0]
-          await updateDoc(doc(database, "communities", item),{
-            members: dt?.members?.filter((u)=>u !== userInfo?.email)
-          }).then(async()=>{
-            if(dt?.members?.filter((u)=>u !== userInfo?.email)?.length === 0){
-              await deleteDoc(doc(database, "communities", item)).then(()=>{
-                setSelectedItems([])
+  const leaveCommunity = () => {
+    Alert.alert(
+      `Dismiss ${selectedItems.length > 1 ? "communities?" : "community?"}`,
+      `Are you sure you want to leave ${
+        selectedItems.length > 1 ? "these" : "this"
+      } ${selectedItems.length > 1 ? "communities?" : "community?"}`,
+      [
+        {
+          text: "NO",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "YES",
+          onPress: () => {
+            selectedItems.forEach(async (item) => {
+              const dt = communities?.filter((el) => el?.id == item)[0];
+              await updateDoc(doc(database, "communities", item), {
+                members: dt?.members?.filter((u) => u !== userInfo?.email),
+              }).then(async () => {
+                if (
+                  dt?.members?.filter((u) => u !== userInfo?.email)?.length ===
+                  0
+                ) {
+                  await deleteDoc(doc(database, "communities", item)).then(
+                    () => {
+                      setSelectedItems([]);
+                    }
+                  );
+                } else {
+                  setSelectedItems([]);
+                }
               });
-            }else{
-              setSelectedItems([])
-            }
-            
-          })
-        })
-      }},
-    ]);
-  }
+            });
+          },
+        },
+      ]
+    );
+  };
 
   const handlePress = (id) => {
     if (selectedItems.includes(id)) {
@@ -70,7 +81,6 @@ const ChatHome = ({ navigation }) => {
     if (!selectedItems.includes(item)) {
       setSelectable(true);
       setSelectedItems([...selectedItems, item]);
-      
     }
   };
 
@@ -78,14 +88,12 @@ const ChatHome = ({ navigation }) => {
     setMyCommunities(
       communities.filter((com) => com.members.includes(userInfo?.email))
     );
-    
   }, [communities, userInfo]);
 
   useEffect(() => {
     if (selectedItems.length < 1) {
       setSelectable(false);
     }
-    
   }, [selectedItems]);
 
   return (
@@ -101,56 +109,67 @@ const ChatHome = ({ navigation }) => {
             {selectable ? (
               <>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <TouchableOpacity
+                  <IconButton
                     onPress={() => {
                       setSelectedItems([]);
                       setSelectable(false);
                     }}
+                    icon="arrow-left"
+                    iconColor={"white"}
+                    size={23}
                     style={{
-                      width: 40,
-                      height: 40,
                       backgroundColor: "rgba(255,255,255,0.08)",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: 40,
+                      height: 45,
+                      width: 45,
+                      borderRadius: 45,
+                      margin: 0,
                     }}
-                  >
-                    <AntIcon name="arrowleft" size={20} color={"white"} />
-                  </TouchableOpacity>
+                  />
                   <Text
                     style={{
                       fontFamily: "medium",
                       fontSize: 17,
                       marginLeft: 10,
-                      color:"white"
+                      color: "white",
                     }}
                   >
                     {selectedItems.length}
                   </Text>
                 </View>
-                <TouchableOpacity
-                onPress={()=>leaveCommunity()}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    backgroundColor: "rgba(255,255,255,0.08)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: 40,
-                  }}
-                >
-                  <Feather name="trash-2" size={20} color={"white"} />
-                </TouchableOpacity>
+                <IconButton
+                    onPress={() => {
+                      leaveCommunity()
+                    }}
+                    icon="trash-can-outline"
+                    iconColor={"white"}
+                    size={23}
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.08)",
+                      height: 45,
+                      width: 45,
+                      borderRadius: 45,
+                      margin: 0,
+                    }}
+                  />
               </>
             ) : (
               <>
                 <Animated.Text
-                  style={{ fontFamily: "bold", fontSize: 20, opacity: 1, color:"white" }}
+                  style={{
+                    fontFamily: "bold",
+                    fontSize: 20,
+                    opacity: 1,
+                    color: "white",
+                  }}
                 >
                   My Communities
                 </Animated.Text>
                 <TouchableOpacity onPress={() => navigation.navigate("Search")}>
-                  <IonIcon name="ios-search-outline" size={25} color={"white"}/>
+                  <IonIcon
+                    name="ios-search-outline"
+                    size={25}
+                    color={"white"}
+                  />
                 </TouchableOpacity>
               </>
             )}
@@ -158,7 +177,15 @@ const ChatHome = ({ navigation }) => {
         </Animated.View>
 
         {loadingCommunities ? (
-          <View style={{ paddingTop: 5, backgroundColor:"white", flex:1, borderTopLeftRadius:20, borderTopRightRadius:20 }}>
+          <View
+            style={{
+              paddingTop: 5,
+              backgroundColor: "white",
+              flex: 1,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+            }}
+          >
             <ShimmerLoader />
             <ShimmerLoader />
             <ShimmerLoader />
@@ -167,78 +194,97 @@ const ChatHome = ({ navigation }) => {
             <ShimmerLoader />
           </View>
         ) : (
-          <View style={{backgroundColor:"white", flex:1, borderTopLeftRadius:20, borderTopRightRadius:20}}>
+          <View
+            style={{
+              backgroundColor: "white",
+              flex: 1,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+            }}
+          >
             <FlatList
-          
-            data={myCommunities.sort((a,b)=> new Date(b?.messages[b?.messages?.length -1]?.time) - new Date(a?.messages[a?.messages?.length -1]?.time))}
-            overScrollMode={"never"}
-            bounces
-            refreshControl={
-              <RefreshControl
-                refreshing={myCommunities ? false : true}
-                onRefresh={() => fetchCommunities()}
-              />
-            }
-            ListEmptyComponent={() => (
-              <View
-                style={{
-                  width: "100%",
-                  height: height *0.69,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Image style={{width:"100%", height:"45%", resizeMode:"contain",}} source={{uri:"https://user-images.githubusercontent.com/110984357/232028939-ad98af03-376f-40fc-91f5-4c298a4a3913.png"}}/>
-                <Text style={{ fontFamily: "bold", fontSize: 19 }}>
-                  No Community Found
-                </Text>
+              data={myCommunities.sort(
+                (a, b) =>
+                  new Date(b?.messages[b?.messages?.length - 1]?.time) -
+                  new Date(a?.messages[a?.messages?.length - 1]?.time)
+              )}
+              overScrollMode={"never"}
+              bounces
+              refreshControl={
+                <RefreshControl
+                  refreshing={myCommunities ? false : true}
+                  onRefresh={() => fetchCommunities()}
+                />
+              }
+              ListEmptyComponent={() => (
                 <View
                   style={{
-                    flexDirection: "row",
-                    columnGap: 5,
-                    opacity: 0.6,
-                    paddingVertical: 3,
+                    width: "100%",
+                    height: height * 0.69,
                     alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontFamily: "medium" }}>
-                    Create or Join a community!!
+                  <Image
+                    style={{
+                      width: "100%",
+                      height: "45%",
+                      resizeMode: "contain",
+                    }}
+                    source={{
+                      uri: "https://user-images.githubusercontent.com/110984357/232028939-ad98af03-376f-40fc-91f5-4c298a4a3913.png",
+                    }}
+                  />
+                  <Text style={{ fontFamily: "bold", fontSize: 19 }}>
+                    No Community Found
                   </Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      columnGap: 5,
+                      opacity: 0.6,
+                      paddingVertical: 3,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text style={{ fontFamily: "medium" }}>
+                      Create or Join a community!!
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            )}
-            keyExtractor={(item) => {
-              return item.id.toString();
-            }}
-            renderItem={({ item, index }) => (
-              <CommunityCard
-                longPressed={() => handleLongPress(item.id)}
-                name={item.name}
-                image={item.profileImage}
-                keyProp={item.id}
-                recentMessage={[
-                  item?.messages?.at(-1)?.sender,
-                  item?.messages?.at(-1)?.message,
-                ]}
-                selected={selectedItems.includes(item.id) ? true : false}
-                clicked={() =>
-                  selectable
-                    ? handlePress(item.id)
-                    : navigation.navigate("ChatScreen", { id: item.id })
-                }
-                unRead={
-                  item?.messages?.filter((msg)=>{
-                   return !msg?.readBy?.includes(userInfo?.email)
-                  }).length
-                }
-              />
-              
-            )}
-          />
+              )}
+              keyExtractor={(item) => {
+                return item.id.toString();
+              }}
+              renderItem={({ item, index }) => (
+                <CommunityCard
+                  longPressed={() => handleLongPress(item.id)}
+                  name={item.name}
+                  image={item.profileImage}
+                  keyProp={item.id}
+                  recentMessage={[
+                    item?.messages?.at(-1)?.sender,
+                    
+                    item?.messages?.at(-1)?.message?.startsWith("https://raw.githubusercontent.com/") ? item?.messages?.at(-1).message?.split("/")[
+                      item?.messages?.at(-1).message.split("/").length - 1
+                    ] : item?.messages?.at(-1)?.message,
+                  ]}
+                  selected={selectedItems.includes(item.id) ? true : false}
+                  clicked={() =>
+                    selectable
+                      ? handlePress(item.id)
+                      : navigation.navigate("ChatScreen", { id: item.id })
+                  }
+                  unRead={
+                    item?.messages?.filter((msg) => {
+                      return !msg?.readBy?.includes(userInfo?.email);
+                    }).length
+                  }
+                />
+              )}
+            />
           </View>
         )}
-
-        
       </SafeAreaView>
     </View>
   );
@@ -268,7 +314,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    
   },
   deleteButton: {
     backgroundColor: "red",

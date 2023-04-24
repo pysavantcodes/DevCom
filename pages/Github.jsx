@@ -17,6 +17,7 @@ import { database } from "../firebase-config";
 import { useGithub } from "../contexts/GithubContext";
 import LoadingUserPage from "../components/LoadingUserPage";
 import Feather from "react-native-vector-icons/Feather";
+import Ant from "react-native-vector-icons/AntDesign";
 import RepoContentModal from "../components/RepoContentModal";
 import {
   Dialog,
@@ -279,7 +280,7 @@ const Github = ({navigation}) => {
               }}
               source={{ uri: githubUserDetails?.avatar_url }}
             />
-            <View>
+            <View style={{flex:1}}>
               <Text
                 style={{ color: "white", fontFamily: "bold", fontSize: 23 }}
               >
@@ -291,6 +292,11 @@ const Github = ({navigation}) => {
                 @{githubUserDetails?.login}
               </Text>
             </View>
+            <TouchableOpacity onPress={async()=>await updateDoc(doc(database, "users", userInfo?.email), {
+        githubAcc: null,
+      })}>
+              <Ant name="logout" size={24} color={"white"}/>
+            </TouchableOpacity>
           </View>
           <View
             style={{
@@ -438,6 +444,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     fontFamily: "regular",
     marginBottom: 10,
+    lineHeight:14
   },
 });
 

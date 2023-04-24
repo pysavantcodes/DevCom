@@ -231,9 +231,7 @@ const ChatHome = ({ navigation }) => {
                       height: "45%",
                       resizeMode: "contain",
                     }}
-                    source={{
-                      uri: "https://user-images.githubusercontent.com/110984357/232028939-ad98af03-376f-40fc-91f5-4c298a4a3913.png",
-                    }}
+                    source={require("../assets/group.png")}
                   />
                   <Text style={{ fontFamily: "bold", fontSize: 19 }}>
                     No Community Found

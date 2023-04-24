@@ -172,7 +172,7 @@ const SearchPage = ({ navigation }) => {
               justifyContent: "center",
               padding:20
             }}>
-              <Image style={{width:"100%", height:"45%", resizeMode:"cover",}} source={{uri:"https://user-images.githubusercontent.com/110984357/232053732-3db3fc3f-d514-4229-9b67-ce6f4e82293b.png"}}/>
+              <Image style={{width:"100%", height:"45%", resizeMode:"cover",}} source={require("../assets/search.png")}/>
                 <Text style={{ fontFamily: "medium", fontSize: 15, textAlign:"center", paddingTop:8 }}>
                 We can't find the community you are searching for.
                 </Text>
@@ -286,5 +286,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.15)",
     borderRadius: 6,
     color: "white",
+    fontFamily:"regular"
   },
 });

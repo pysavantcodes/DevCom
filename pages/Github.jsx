@@ -176,7 +176,7 @@ const Github = ({navigation}) => {
                 fontFamily: "regular",
                 paddingHorizontal: 10,
               }}
-              onPress={() => setVisible(false)}
+              onPress={() => {setVisible(false); setSelectedItems([])}}
             >
               Cancel
             </Button>

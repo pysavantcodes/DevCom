@@ -1,7 +1,10 @@
 import {
+  ActivityIndicator,
+  Dimensions,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -25,7 +28,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { Modal } from "react-native";
 import CommunityInfo from "../components/CommunityInfo";
 import ImageView from "react-native-image-viewing";
-import { Button, Divider, IconButton, Menu } from "react-native-paper";
+import { IconButton } from "react-native-paper";
+import Feather from "react-native-vector-icons/Feather";
+import Clipboard from "@react-native-community/clipboard";
+
+const { width, height } = Dimensions.get("screen");
 
 const ChatsScreen = ({ navigation, route }) => {
   const { id } = route.params;
@@ -41,6 +48,9 @@ const ChatsScreen = ({ navigation, route }) => {
   const [imgIndex, setImgIndex] = useState(0);
   const [images, setImages] = useState([]);
   const [visible, setVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [loadingData, setLoadingData] = useState(false);
+  const [url, setUrl] = useState("");
 
   const openMenu = () => setVisible(true);
 
@@ -119,6 +129,27 @@ const ChatsScreen = ({ navigation, route }) => {
     setShowImages(true);
   };
 
+  const handleFileClick = async (item) => {
+    const url = item;
+    setLoadingData(true);
+    setSelectedItem({})
+    const response = await fetch(url);
+    await response.text().then((data) => {
+      if (data.length > 1024 * 102) {
+        if (item.endsWith(".png") || item.endsWith(".jpg")) {
+          setSelectedItem({ data, url: item });
+          setLoadingData(false);
+        } else {
+          setSelectedItem({ data: "File size too large", url: item });
+          setLoadingData(false);
+        }
+      } else {
+        setSelectedItem({ data, url: item });
+        setLoadingData(false);
+      }
+    });
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageView
@@ -138,12 +169,129 @@ const ChatsScreen = ({ navigation, route }) => {
           navigation={navigation}
         />
       </Modal>
+      <Modal
+        onRequestClose={() => setSelectedItem(null)}
+        visible={selectedItem ? true : false}
+        animationType="slide"
+      >
+        {loadingData ? <ActivityIndicator style={{padding:40}} size={27} color={"black"}/> : <ScrollView
+          style={{
+            backgroundColor: "white",
+            padding: 20,
+            paddingBottom: 60,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              columnGap: 15,
+            }}
+          >
+            <View
+              style={{
+                opacity: 0.8,
+                backgroundColor: "rgba(0,0,0,0.09)",
+                overflow: "scroll",
+                borderRadius: 6,
+                maxWidth: "91%",
+              }}
+            >
+              <ScrollView
+                contentContainerStyle={{
+                  padding: 8,
+                }}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                overScrollMode="never"
+              >
+                <Text style={{ fontSize: 13.5, fontFamily: "medium" }}>
+                  {selectedItem?.url
+                           ?.split("/")[
+                            selectedItem?.url?.split("/").length - 1
+                            ]
+                          }
+                </Text>
+              </ScrollView>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedItem(null);
+              }}
+            >
+              <Feather name="chevron-down" size={24} />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              backgroundColor: "rgba(0,0,0,0.05)",
+              marginTop: 20,
+              borderRadius: 7,
+              position: "relative",
+            }}
+          >
+            {selectedItem?.url?.endsWith(".png") &&
+            selectedItem?.data !== "File size too large" ? (
+              <Image
+                style={{ width: "80%", height: 500, alignSelf: "center" }}
+                source={{ uri: selectedItem?.url }}
+                resizeMode="contain"
+              />
+            ) : (
+              <>
+                {selectedItem?.data !== "File size too large" && (
+                  <TouchableOpacity
+                  onPress={()=>{Clipboard.setString(selectedItem?.data); ToastAndroid.show("Copied!", 2000)}}
+                    style={{
+                      position: "absolute",
+                      top: 15,
+                      right: 15,
+                      backgroundColor: "rgba(0,0,0,0.08)",
+                      padding: 8,
+                      borderRadius: 7,
+                      zIndex: 3,
+                    }}
+                  >
+                    <Feather name="copy" size={18} />
+                  </TouchableOpacity>
+                )}
+
+                <View style={{ padding: 10, maxHeight: height * 0.80 }}>
+                  <ScrollView
+                    overScrollMode="never"
+                    showsVerticalScrollIndicator={false}
+                  >
+                    <Text
+                      selectable={true}
+                      style={{ opacity: 0.9, fontFamily: "code" }}
+                      selectionColor={"rgba(0,0,0,0.1)"}
+                    >
+                      {selectedItem?.data}
+                    </Text>
+                  </ScrollView>
+                </View>
+              </>
+            )}
+          </View>
+        </ScrollView>}
+      </Modal>
       <View style={styles.head}>
-        <IconButton onPress={() => navigation.navigate("Chats")} icon="arrow-left"
-            iconColor={"white"}
-            size={23}
-            style={{backgroundColor:"rgba(255,255,255,0.08)", height:45, width:45,borderRadius:45, margin:0}}/>
-       
+        <IconButton
+          onPress={() => navigation.navigate("Chats")}
+          icon="arrow-left"
+          iconColor={"white"}
+          size={23}
+          style={{
+            backgroundColor: "rgba(255,255,255,0.08)",
+            height: 45,
+            width: 45,
+            borderRadius: 45,
+            margin: 0,
+          }}
+        />
+
         <TouchableOpacity
           onPress={() => setShowModal(true)}
           style={{
@@ -214,7 +362,7 @@ const ChatsScreen = ({ navigation, route }) => {
           flex: 1,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
-          overflow:"hidden"
+          overflow: "hidden",
         }}
       >
         <ScrollView
@@ -274,8 +422,10 @@ const ChatsScreen = ({ navigation, route }) => {
                           ? 0
                           : 15,
                       borderRadius: 15,
-                      borderTopRightRadius:user[0].email !== userInfo.email ? 15 : 0,
-                      borderTopLeftRadius:user[0].email !== userInfo.email ? 0 : 15,
+                      borderTopRightRadius:
+                        user[0].email !== userInfo.email ? 15 : 0,
+                      borderTopLeftRadius:
+                        user[0].email !== userInfo.email ? 0 : 15,
                       overflow: "hidden",
                     }}
                   >
@@ -283,7 +433,9 @@ const ChatsScreen = ({ navigation, route }) => {
                       <Text
                         style={{
                           fontFamily: "medium",
-                          fontSize: 12.5,
+                          fontSize: 12,
+                          lineHeight:12,
+                          
                           padding:
                             item.message.endsWith(".png") ||
                             item.message.endsWith(".jpg")
@@ -300,22 +452,22 @@ const ChatsScreen = ({ navigation, route }) => {
                     !item.message.endsWith(".png") &&
                     !item.message.endsWith(".png") ? (
                       <TouchableOpacity
+                        onPress={() => {
+                          handleFileClick(item.message);
+                        }}
                         style={{
                           padding: 5,
-                          borderWidth: 1,
                           marginVertical:
                             user[0].email !== userInfo.email ? 5 : 0,
                           borderRadius: 5,
-                          borderColor:
-                            user[0].email !== userInfo.email
-                              ? "rgba(0,0,0,0.4)"
-                              : "black",
                         }}
                       >
                         <Text
                           style={{
                             fontFamily: "medium",
                             fontSize: 16,
+                            lineHeight:16,
+                            marginBottom:3,
                             color:
                               user[0].email !== userInfo.email
                                 ? "black"
@@ -333,6 +485,7 @@ const ChatsScreen = ({ navigation, route }) => {
                             fontFamily: "medium",
                             fontSize: 11,
                             opacity: 0.6,
+                            lineHeight:11,
                             color:
                               user[0].email !== userInfo.email
                                 ? "black"
@@ -359,6 +512,11 @@ const ChatsScreen = ({ navigation, route }) => {
                       <Text
                         style={{
                           fontFamily: "regular",
+                          lineHeight:14,
+                          marginTop:
+                          user[0].email === userInfo.email
+                            ? 0
+                            : 5,
                           color:
                             user[0].email === userInfo.email
                               ? "white"
@@ -467,5 +625,6 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(0,0,0,0.1)",
     borderBottomWidth: 0.8,
     paddingVertical: 12,
-    alignItems:"center"  },
+    alignItems: "center",
+  },
 });

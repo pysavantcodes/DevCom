@@ -1,5 +1,6 @@
+import Clipboard from "@react-native-community/clipboard";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Image, TouchableNativeFeedback } from "react-native";
+import { Dimensions, Image, ToastAndroid, TouchableNativeFeedback } from "react-native";
 import {
   Modal,
   View,
@@ -50,8 +51,13 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
       const data = await response.text();
 
       if (data.length > 1024 * 102) {
-        setSelectedItem({ data: "File size too large", path: item.path });
+        if(item.path?.endsWith(".png") || item.path?.endsWith(".jpg")){
+          setSelectedItem({ data, path: item.path, url: item.download_url });
         setLoadingData(false);
+        }else{
+          setSelectedItem({ data: "File size too large", path: item.path, url:item.download_url });
+        setLoadingData(false);
+        }
       } else {
         setSelectedItem({ data, path: item.path, url: item.download_url });
         setLoadingData(false);
@@ -228,6 +234,7 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
               <>
                 {selectedItem?.data !== "File size too large" && (
                   <TouchableOpacity
+                  onPress={()=>{Clipboard.setString(selectedItem?.data); ToastAndroid.show("Copied!", 2000)}}
                     style={{
                       position: "absolute",
                       top: 15,

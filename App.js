@@ -16,9 +16,9 @@ export default function App() {
     },
   };
   const [fontsLoaded] = useFonts({
-    bold: require("./assets/fonts/bold.otf"),
-    medium: require("./assets/fonts/medium.otf"),
-    regular: require("./assets/fonts/regular.otf"),
+    bold: require("./assets/fonts/bold.ttf"),
+    medium: require("./assets/fonts/medium.ttf"),
+    regular: require("./assets/fonts/regular.ttf"),
     code: require("./assets/fonts/Cascadia.ttf"),
   });
 

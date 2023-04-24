@@ -421,7 +421,7 @@ const Github = ({navigation}) => {
       {showSnackBar && (
         <Snackbar
           message={snackBarData}
-          style={{ position: "absolute", start: 16, end: 16, bottom: 80 }}
+          style={{ position: "absolute", start: 16, end: 16, bottom: 10 }}
         />
       )}
     </ScrollView>

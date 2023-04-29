@@ -1,6 +1,11 @@
 import Clipboard from "@react-native-community/clipboard";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Image, ToastAndroid, TouchableNativeFeedback } from "react-native";
+import {
+  Dimensions,
+  Image,
+  ToastAndroid,
+  TouchableNativeFeedback,
+} from "react-native";
 import {
   Modal,
   View,
@@ -18,7 +23,6 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
   const [content, setContent] = useState([]);
   const [folderContent, setFolderContent] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
-  
 
   useEffect(() => {
     const fetchRepoContent = async () => {
@@ -51,12 +55,16 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
       const data = await response.text();
 
       if (data.length > 1024 * 102) {
-        if(item.path?.endsWith(".png") || item.path?.endsWith(".jpg")){
+        if (item.path?.endsWith(".png") || item.path?.endsWith(".jpg")) {
           setSelectedItem({ data, path: item.path, url: item.download_url });
-        setLoadingData(false);
-        }else{
-          setSelectedItem({ data: "File size too large", path: item.path, url:item.download_url });
-        setLoadingData(false);
+          setLoadingData(false);
+        } else {
+          setSelectedItem({
+            data: "File size too large",
+            path: item.path,
+            url: item.download_url,
+          });
+          setLoadingData(false);
         }
       } else {
         setSelectedItem({ data, path: item.path, url: item.download_url });
@@ -71,7 +79,6 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
       visible={isOpen}
       animationType="slide"
     >
-      
       <View
         style={{
           backgroundColor: "white",
@@ -234,7 +241,10 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
               <>
                 {selectedItem?.data !== "File size too large" && (
                   <TouchableOpacity
-                  onPress={()=>{Clipboard.setString(selectedItem?.data); ToastAndroid.show("Copied!", 2000)}}
+                    onPress={() => {
+                      Clipboard.setString(selectedItem?.data);
+                      ToastAndroid.show("Copied!", 2000);
+                    }}
                     style={{
                       position: "absolute",
                       top: 15,
@@ -271,7 +281,10 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
               "rgba(255,255,255,0.35)",
               false
             )}
-            onPress={()=>{share(selectedItem.url);onClose()}}
+            onPress={() => {
+              share(selectedItem.url);
+              onClose();
+            }}
           >
             <View
               style={{
@@ -298,7 +311,6 @@ const RepoContentModal = ({ repoName, repoOwner, isOpen, onClose, share }) => {
             </View>
           </TouchableNativeFeedback>
         </ScrollView>
-        
       </Modal>
       <Modal
         onRequestClose={() => setFolderContent(null)}

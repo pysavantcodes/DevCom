@@ -59,6 +59,7 @@ function Home({navigation}) {
       barStyle={{ backgroundColor: '#000',  alignItems:"center", paddingHorizontal:10 }}
       sceneAnimationType="opacity"
       sceneAnimationEnabled={true}
+      shifting
     >
       <Tab.Screen
         name="Chats"
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
   tabBarLabel: {
     fontSize: 11,
     textAlign: 'center',
-    fontFamily: 'regular',
+    fontFamily: 'medium',
     color:"white"
   },
 });

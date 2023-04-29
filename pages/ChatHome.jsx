@@ -137,20 +137,20 @@ const ChatHome = ({ navigation }) => {
                   </Text>
                 </View>
                 <IconButton
-                    onPress={() => {
-                      leaveCommunity()
-                    }}
-                    icon="trash-can-outline"
-                    iconColor={"white"}
-                    size={23}
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.08)",
-                      height: 45,
-                      width: 45,
-                      borderRadius: 45,
-                      margin: 0,
-                    }}
-                  />
+                  onPress={() => {
+                    leaveCommunity();
+                  }}
+                  icon="trash-can-outline"
+                  iconColor={"white"}
+                  size={23}
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.08)",
+                    height: 45,
+                    width: 45,
+                    borderRadius: 45,
+                    margin: 0,
+                  }}
+                />
               </>
             ) : (
               <>
@@ -263,9 +263,16 @@ const ChatHome = ({ navigation }) => {
                   recentMessage={[
                     item?.messages?.at(-1)?.sender,
                     
-                    item?.messages?.at(-1)?.message?.startsWith("https://raw.githubusercontent.com/") ? item?.messages?.at(-1).message?.split("/")[
-                      item?.messages?.at(-1).message.split("/").length - 1
-                    ] : item?.messages?.at(-1)?.message,
+                    item?.messages
+                      ?.at(-1)
+                      ?.message?.startsWith(
+                        "https://raw.githubusercontent.com/"
+                      )
+                      ? item?.messages?.at(-1).message?.split("/")[
+                          item?.messages?.at(-1).message.split("/").length - 1
+                        ]
+                      : item?.messages?.at(-1)?.message,
+                      item?.messages?.at(-1)?.time
                   ]}
                   selected={selectedItems.includes(item.id) ? true : false}
                   clicked={() =>

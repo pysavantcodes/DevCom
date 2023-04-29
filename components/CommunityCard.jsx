@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { TouchableOpacity, TouchableNativeFeedback } from "react-native";
 import { Image } from "react-native";
 import Feather from "react-native-vector-icons/Feather";
@@ -19,6 +19,51 @@ const CommunityCard = ({
   const { userInfo } = useAuth();
   const { allUsers } = useCommunity();
   const user = allUsers.filter((user) => user.email === recentMessage[0]);
+  const [time, setTime] = useState("")
+  
+  useEffect(() => {
+    
+      const interval = setInterval(()=>{
+        const date = new Date(recentMessage[2]);
+      const hours = date.getHours() % 12 || 12; // Get hours in 12-hour format
+      const minutes = date.getMinutes();
+      const ampm = date.getHours() >= 12 ? 'pm' : 'am';
+    
+      // Calculate time difference in milliseconds
+      const diffTime = Date.now() - date.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+      const diffMonths = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30));
+      const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
+    
+     
+      if (diffDays < 1) {
+        setTime(`${hours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`)
+      } else if (diffDays === 1) {
+        setTime('Yesterday')
+      } else if (diffDays < 7) {
+        setTime(`${diffDays}d`)
+      } else if (diffWeeks === 1) {
+        setTime("1w")
+      } else if (diffWeeks < 4) {
+        setTime(`${diffWeeks}w`);
+      } else if (diffMonths === 1) {
+        setTime("1mth")
+      } else if (diffMonths < 12) {
+        setTime(`${diffMonths}m`)
+      } else if (diffYears === 1) {
+        setTime("1yr")
+      } else {
+        setTime(`${diffYears}yrs`);
+      }
+      }, 1000);
+
+      return ()=>{
+        clearInterval(interval)
+      }
+    
+  }, [recentMessage[2]])
+  
   
   return (
     <TouchableNativeFeedback
@@ -92,6 +137,10 @@ const CommunityCard = ({
         >
           <Text style={{ color: "white", textAlign: "center", fontSize:11 }}>{unRead}</Text>
         </View>}
+        <Text style={{
+                      fontFamily: "regular",
+                      fontSize: 11.5,
+                      opacity: 0.8,}}>{time}</Text>
       </View>
     </TouchableNativeFeedback>
   );

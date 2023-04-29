@@ -47,15 +47,54 @@ const ChatsScreen = ({ navigation, route }) => {
   const [showImages, setShowImages] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
   const [images, setImages] = useState([]);
-  const [visible, setVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
-  const [url, setUrl] = useState("");
+  const viewRef = useRef(null);
 
-  const openMenu = () => setVisible(true);
+  //formatting time
+  function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    const hours = date.getHours() % 12 || 12; // Get hours in 12-hour format
+    const minutes = date.getMinutes();
+    const ampm = date.getHours() >= 12 ? 'pm' : 'am';
+  
+    // Calculate time difference in milliseconds
+    const diffTime = Date.now() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    const diffMonths = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30));
+    const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
+  
+    let formattedTime = '';
+    if (diffDays < 1) {
+      
+      formattedTime = `Today`;
+    } else if (diffDays === 1) {
+      formattedTime = 'Yesterday';
+    } else if (diffDays < 7) {
+      formattedTime = `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+    } else if (diffWeeks === 1) {
+      formattedTime = '1 week ago';
+    } else if (diffWeeks < 4) {
+      formattedTime = `${diffWeeks} weeks ago`;
+    } else if (diffMonths === 1) {
+      formattedTime = '1 month ago';
+    } else if (diffMonths < 12) {
+      formattedTime = `${diffMonths} months ago`;
+    } else if (diffYears === 1) {
+      formattedTime = '1 year ago';
+    } else {
+      formattedTime = `${diffYears} years ago`;
+    }
+  
+    formattedTime += `, ${hours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
+  
+    return formattedTime;
+  }
+  
+  
 
-  const closeMenu = () => setVisible(false);
-
+  //fetching community details
   useEffect(() => {
     const getCommunity = async () => {
       const querySnapshot = await getDocs(q);
@@ -68,7 +107,9 @@ const ChatsScreen = ({ navigation, route }) => {
     };
     getCommunity();
   }, []);
+  
 
+  //read message logic
   useEffect(() => {
     const readMessage = async () => {
       if (community?.messages) {
@@ -90,6 +131,9 @@ const ChatsScreen = ({ navigation, route }) => {
     readMessage();
   }, [community]);
 
+
+
+  //image slide logic
   useEffect(() => {
     const getAllImages = community?.messages?.filter((msg) => {
       return msg?.message?.endsWith(".png") || msg?.message?.endsWith(".jpg");
@@ -101,6 +145,8 @@ const ChatsScreen = ({ navigation, route }) => {
     setImages(tempImg);
   }, [community]);
 
+
+  //function for sending messages
   const sendMessage = async () => {
     const newMessage = {
       message: message.trim(),
@@ -132,7 +178,7 @@ const ChatsScreen = ({ navigation, route }) => {
   const handleFileClick = async (item) => {
     const url = item;
     setLoadingData(true);
-    setSelectedItem({})
+    setSelectedItem({});
     const response = await fetch(url);
     await response.text().then((data) => {
       if (data.length > 1024 * 102) {
@@ -149,6 +195,8 @@ const ChatsScreen = ({ navigation, route }) => {
       }
     });
   };
+
+  
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
@@ -174,108 +222,119 @@ const ChatsScreen = ({ navigation, route }) => {
         visible={selectedItem ? true : false}
         animationType="slide"
       >
-        {loadingData ? <ActivityIndicator style={{padding:40}} size={27} color={"black"}/> : <ScrollView
-          style={{
-            backgroundColor: "white",
-            padding: 20,
-            paddingBottom: 60,
-          }}
-        >
-          <View
+        {loadingData ? (
+          <ActivityIndicator
+            style={{ padding: 40 }}
+            size={27}
+            color={"black"}
+          />
+        ) : (
+          <ScrollView
             style={{
-              width: "100%",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              columnGap: 15,
+              backgroundColor: "white",
+              padding: 20,
+              paddingBottom: 60,
             }}
           >
             <View
               style={{
-                opacity: 0.8,
-                backgroundColor: "rgba(0,0,0,0.09)",
-                overflow: "scroll",
-                borderRadius: 6,
-                maxWidth: "91%",
+                width: "100%",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                columnGap: 15,
               }}
             >
-              <ScrollView
-                contentContainerStyle={{
-                  padding: 8,
+              <View
+                style={{
+                  opacity: 0.8,
+                  backgroundColor: "rgba(0,0,0,0.09)",
+                  overflow: "scroll",
+                  borderRadius: 6,
+                  maxWidth: "91%",
                 }}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                overScrollMode="never"
               >
-                <Text style={{ fontSize: 13.5, fontFamily: "medium" }}>
-                  {selectedItem?.url
-                           ?.split("/")[
-                            selectedItem?.url?.split("/").length - 1
-                            ]
-                          }
-                </Text>
-              </ScrollView>
+                <ScrollView
+                  contentContainerStyle={{
+                    padding: 8,
+                  }}
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                  overScrollMode="never"
+                >
+                  <Text style={{ fontSize: 13.5, fontFamily: "medium" }}>
+                    {
+                      selectedItem?.url?.split("/")[
+                        selectedItem?.url?.split("/").length - 1
+                      ]
+                    }
+                  </Text>
+                </ScrollView>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedItem(null);
+                }}
+              >
+                <Feather name="chevron-down" size={24} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedItem(null);
+            <View
+              style={{
+                backgroundColor: "rgba(0,0,0,0.05)",
+                marginTop: 20,
+                borderRadius: 7,
+                position: "relative",
               }}
             >
-              <Feather name="chevron-down" size={24} />
-            </TouchableOpacity>
-          </View>
-          <View
-            style={{
-              backgroundColor: "rgba(0,0,0,0.05)",
-              marginTop: 20,
-              borderRadius: 7,
-              position: "relative",
-            }}
-          >
-            {selectedItem?.url?.endsWith(".png") &&
-            selectedItem?.data !== "File size too large" ? (
-              <Image
-                style={{ width: "80%", height: 500, alignSelf: "center" }}
-                source={{ uri: selectedItem?.url }}
-                resizeMode="contain"
-              />
-            ) : (
-              <>
-                {selectedItem?.data !== "File size too large" && (
-                  <TouchableOpacity
-                  onPress={()=>{Clipboard.setString(selectedItem?.data); ToastAndroid.show("Copied!", 2000)}}
-                    style={{
-                      position: "absolute",
-                      top: 15,
-                      right: 15,
-                      backgroundColor: "rgba(0,0,0,0.08)",
-                      padding: 8,
-                      borderRadius: 7,
-                      zIndex: 3,
-                    }}
-                  >
-                    <Feather name="copy" size={18} />
-                  </TouchableOpacity>
-                )}
-
-                <View style={{ padding: 10, maxHeight: height * 0.80 }}>
-                  <ScrollView
-                    overScrollMode="never"
-                    showsVerticalScrollIndicator={false}
-                  >
-                    <Text
-                      selectable={true}
-                      style={{ opacity: 0.9, fontFamily: "code" }}
-                      selectionColor={"rgba(0,0,0,0.1)"}
+              {selectedItem?.url?.endsWith(".png") &&
+              selectedItem?.data !== "File size too large" ? (
+                <Image
+                  style={{ width: "80%", height: 500, alignSelf: "center" }}
+                  source={{ uri: selectedItem?.url }}
+                  resizeMode="contain"
+                />
+              ) : (
+                <>
+                  {selectedItem?.data !== "File size too large" && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        Clipboard.setString(selectedItem?.data);
+                        ToastAndroid.show("Copied!", 2000);
+                      }}
+                      style={{
+                        position: "absolute",
+                        top: 15,
+                        right: 15,
+                        backgroundColor: "rgba(0,0,0,0.08)",
+                        padding: 8,
+                        borderRadius: 7,
+                        zIndex: 3,
+                      }}
                     >
-                      {selectedItem?.data}
-                    </Text>
-                  </ScrollView>
-                </View>
-              </>
-            )}
-          </View>
-        </ScrollView>}
+                      <Feather name="copy" size={18} />
+                    </TouchableOpacity>
+                  )}
+
+                  <View style={{ padding: 10, maxHeight: height * 0.8 }}>
+                    <ScrollView
+                      overScrollMode="never"
+                      showsVerticalScrollIndicator={false}
+                    >
+                      <Text
+                        selectable={true}
+                        style={{ opacity: 0.9, fontFamily: "code" }}
+                        selectionColor={"rgba(0,0,0,0.1)"}
+                      >
+                        {selectedItem?.data}
+                      </Text>
+                    </ScrollView>
+                  </View>
+                </>
+              )}
+            </View>
+          </ScrollView>
+        )}
       </Modal>
       <View style={styles.head}>
         <IconButton
@@ -380,153 +439,165 @@ const ChatsScreen = ({ navigation, route }) => {
                 (user) => user.email === item.sender
               );
               return (
-                <View
-                  key={item?.time}
-                  style={{
-                    flexDirection: "row",
-                    marginBottom: 10,
-                    justifyContent:
-                      user[0].email === userInfo.email
-                        ? "flex-end"
-                        : "flex-start",
-                  }}
-                >
-                  {user[0].email !== userInfo.email && (
-                    <Image
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 30,
-                        resizeMode: "cover",
-                        marginRight: 10,
-                      }}
-                      source={{ uri: user[0].profileImage }}
-                    />
-                  )}
-
+                <View style={{ marginBottom: 20 }} key={item?.time}>
                   <View
                     style={{
-                      maxWidth: "70%",
-                      backgroundColor:
-                        user[0].email !== userInfo.email
-                          ? "rgba(0,0,0,0.05)"
-                          : "rgba(0,0,0,1)",
-                      padding:
-                        item.message.endsWith(".png") ||
-                        item.message.endsWith(".jpg")
-                          ? 0
-                          : 10,
-                      paddingHorizontal:
-                        item.message.endsWith(".png") ||
-                        item.message.endsWith(".jpg")
-                          ? 0
-                          : 15,
-                      borderRadius: 15,
-                      borderTopRightRadius:
-                        user[0].email !== userInfo.email ? 15 : 0,
-                      borderTopLeftRadius:
-                        user[0].email !== userInfo.email ? 0 : 15,
-                      overflow: "hidden",
+                      flexDirection: "row",
+                      marginBottom:3,
+                      justifyContent:
+                        user[0].email === userInfo.email
+                          ? "flex-end"
+                          : "flex-start",
                     }}
                   >
                     {user[0].email !== userInfo.email && (
-                      <Text
+                      <Image
                         style={{
-                          fontFamily: "medium",
-                          fontSize: 12,
-                          lineHeight:12,
-                          
-                          padding:
-                            item.message.endsWith(".png") ||
-                            item.message.endsWith(".jpg")
-                              ? 10
-                              : 0,
+                          width: 30,
+                          height: 30,
+                          borderRadius: 30,
+                          resizeMode: "cover",
+                          marginRight: 10,
                         }}
-                      >
-                        {user[0].userName}
-                      </Text>
+                        source={{ uri: user[0].profileImage }}
+                      />
                     )}
-                    {item.message.startsWith(
-                      "https://raw.githubusercontent.com/"
-                    ) &&
-                    !item.message.endsWith(".png") &&
-                    !item.message.endsWith(".png") ? (
-                      <TouchableOpacity
-                        onPress={() => {
-                          handleFileClick(item.message);
-                        }}
-                        style={{
-                          padding: 5,
-                          marginVertical:
-                            user[0].email !== userInfo.email ? 5 : 0,
-                          borderRadius: 5,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: "medium",
-                            fontSize: 16,
-                            lineHeight:16,
-                            marginBottom:3,
-                            color:
-                              user[0].email !== userInfo.email
-                                ? "black"
-                                : "white",
-                          }}
-                        >
-                          {
-                            item.message?.split("/")[
-                              item.message?.split("/").length - 1
-                            ]
-                          }
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: "medium",
-                            fontSize: 11,
-                            opacity: 0.6,
-                            lineHeight:11,
-                            color:
-                              user[0].email !== userInfo.email
-                                ? "black"
-                                : "white",
-                          }}
-                        >
-                          {item.message?.split("/")[3]}/
-                          {item.message?.split("/")[4]}
-                        </Text>
-                      </TouchableOpacity>
-                    ) : item.message.endsWith(".png") ||
-                      item.message.endsWith(".jpg") ? (
-                      <TouchableOpacity
-                        onPress={() => {
-                          displayImage(item.message);
-                        }}
-                      >
-                        <Image
-                          source={{ uri: item.message }}
-                          style={{ width: 200, height: 200 }}
-                        />
-                      </TouchableOpacity>
-                    ) : (
-                      <Text
-                        style={{
-                          fontFamily: "regular",
-                          lineHeight:14,
-                          marginTop:
-                          user[0].email === userInfo.email
+
+                    <View
+                    ref={viewRef}
+                      style={{
+                        maxWidth: "70%",
+                        backgroundColor:
+                          user[0].email !== userInfo.email
+                            ? "rgba(0,0,0,0.05)"
+                            : "rgba(0,0,0,1)",
+                        padding:
+                          item.message.endsWith(".png") ||
+                          item.message.endsWith(".jpg")
                             ? 0
-                            : 5,
-                          color:
-                            user[0].email === userInfo.email
-                              ? "white"
-                              : "black",
-                        }}
-                      >
-                        {item.message}
-                      </Text>
-                    )}
+                            : 10,
+                        paddingHorizontal:
+                          item.message.endsWith(".png") ||
+                          item.message.endsWith(".jpg")
+                            ? 0
+                            : 15,
+                        borderRadius: 15,
+                        borderTopRightRadius:
+                          user[0].email !== userInfo.email ? 15 : 0,
+                        borderTopLeftRadius:
+                          user[0].email !== userInfo.email ? 0 : 15,
+                        overflow: "hidden",
+                      }}
+                    >
+                      {user[0].email !== userInfo.email && (
+                        <Text
+                          style={{
+                            fontFamily: "bold",
+                            fontSize: 12,
+                            lineHeight: 12,
+
+                            padding:
+                              item.message.endsWith(".png") ||
+                              item.message.endsWith(".jpg")
+                                ? 10
+                                : 0,
+                          }}
+                        >
+                          {user[0].userName}
+                        </Text>
+                      )}
+                      {item.message.startsWith(
+                        "https://raw.githubusercontent.com/"
+                      ) &&
+                      !item.message.endsWith(".png") &&
+                      !item.message.endsWith(".png") ? (
+                        <TouchableOpacity
+                          onPress={() => {
+                            handleFileClick(item.message);
+                          }}
+                          style={{
+                            padding: 5,
+                            marginVertical:
+                              user[0].email !== userInfo.email ? 5 : 0,
+                            borderRadius: 5,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: "medium",
+                              fontSize: 16,
+                              lineHeight: 16,
+                              marginBottom: 3,
+                              color:
+                                user[0].email !== userInfo.email
+                                  ? "black"
+                                  : "white",
+                            }}
+                          >
+                            {
+                              item.message?.split("/")[
+                                item.message?.split("/").length - 1
+                              ]
+                            }
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: "medium",
+                              fontSize: 11,
+                              opacity: 0.6,
+                              lineHeight: 11,
+                              color:
+                                user[0].email !== userInfo.email
+                                  ? "black"
+                                  : "white",
+                            }}
+                          >
+                            {item.message?.split("/")[3]}/
+                            {item.message?.split("/")[4]}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : item.message.endsWith(".png") ||
+                        item.message.endsWith(".jpg") ? (
+                        <TouchableOpacity
+                          onPress={() => {
+                            displayImage(item.message);
+                          }}
+                        >
+                          <Image
+                            source={{ uri: item.message }}
+                            style={{ width: 200, height: 200 }}
+                          />
+                        </TouchableOpacity>
+                      ) : (
+                        <Text
+                          style={{
+                            fontFamily: "regular",
+                            lineHeight: 14,
+                            marginTop: user[0].email === userInfo.email ? 0 : 5,
+                            color:
+                              user[0].email === userInfo.email
+                                ? "white"
+                                : "black",
+                          }}
+                        >
+                          {item.message}
+                        </Text>
+                      )}
+                    </View>
                   </View>
+                  <Text
+                    style={{
+                      textAlign:
+                        user[0].email !== userInfo.email ? "left" : "right",
+                      fontFamily: "regular",
+                      fontSize: 10,
+                      paddingLeft: user[0].email !== userInfo.email ? 40 : 0,
+                      paddingRight: user[0].email !== userInfo.email ? 0 : 5,
+                      opacity: 0.5,
+                    }}
+                  >
+                    {formatTime(item.time)}
+                  </Text>
                 </View>
               );
             })}
@@ -535,7 +606,7 @@ const ChatsScreen = ({ navigation, route }) => {
 
       {community?.members?.includes(userInfo?.email) ? (
         <View style={styles.bottom}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={{
               width: 40,
               height: 40,
@@ -547,7 +618,7 @@ const ChatsScreen = ({ navigation, route }) => {
             }}
           >
             <Ant color={"black"} name="plus" size={23} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TextInput
             multiline
             style={{

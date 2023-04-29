@@ -80,6 +80,7 @@ const AuthProvider = ({ children }) => {
         showSheet,
         setShowSheet,
         isOffline,
+        setOfflineStatus
       }}
     >
       {children}

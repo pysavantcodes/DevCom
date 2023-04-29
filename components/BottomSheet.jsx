@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Animated,
 } from "react-native";
-import { ScrollView, TextInput } from "react-native-gesture-handler";
+import { ScrollView } from "react-native-gesture-handler";
 import FthIcon from "react-native-vector-icons/Feather";
 import IonIcon from "react-native-vector-icons/Ionicons";
 import { useAuth } from "../contexts/AuthContext";
@@ -20,6 +20,9 @@ import getCurrentDateTime from "./getCurrentDateTime";
 import { Keyboard } from "react-native";
 import * as FileSystem from 'expo-file-system'
 import { Alert } from "react-native";
+import { TextInput } from "react-native-paper";
+
+
 const { height, width } = Dimensions.get("screen");
 
 const BSheet = ({ navigation }) => {
@@ -211,17 +214,20 @@ const BSheet = ({ navigation }) => {
             paddingTop: 10,
           }}
         >
-          <Text
+          <TextInput
+          label={<Text
             style={{
-              fontSize: 15,
+              fontSize: 13,
               fontFamily: "medium",
-              paddingTop: 7,
               opacity: 0.7,
+              color:"rgba(0,0,0,0.6)",
+              lineHeight:13
             }}
           >
-            Enter Community Name
-          </Text>
-          <TextInput
+            Enter community name
+          </Text>}
+          theme={{colors: { primary: 'black'}}}
+          outlineColor="black"
             placeholder="e.g: JS Devs..."
             selectionColor="rgba(0,0,0,0.4)"
             placeholderTextColor="rgba(0,0,0,0.4)"
@@ -252,17 +258,20 @@ const BSheet = ({ navigation }) => {
               This Field Cannot be empty
             </Text>
           )}
-          <Text
+          <TextInput
+          label={<Text
             style={{
-              fontSize: 15,
+              fontSize: 13,
               fontFamily: "medium",
-              paddingTop: 7,
               opacity: 0.7,
+              color:"rgba(0,0,0,0.6)",
+              lineHeight:13
             }}
           >
             Description
-          </Text>
-          <TextInput
+          </Text>}
+          underlineColor="black"
+          theme={{colors: { primary: 'black'}}}
             placeholder="Community description"
             selectionColor="rgba(0,0,0,0.4)"
             placeholderTextColor="rgba(0,0,0,0.4)"
@@ -437,13 +446,11 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   input: {
-    paddingVertical: 7,
-    paddingHorizontal: 14,
+ 
+    color:"black",
     marginVertical: 6,
     backgroundColor: "rgba(0,0,0,0.05)",
-    borderRadius: 6,
-    borderWidth:.5,
-    borderColor:"rgba(0,0,0,0.3)"
+    
   },
 });
 

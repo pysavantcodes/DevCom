@@ -7,7 +7,7 @@ import { useAuth } from "./contexts/AuthContext";
 import ChatHome from "./pages/ChatHome";
 import FullScreenLoader from "./components/FullScreenLoader";
 import { StatusBar } from "expo-status-bar";
-import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
 import {
   Platform,
   StyleSheet,
@@ -15,6 +15,7 @@ import {
   Text,
   BackHandler,
   TouchableOpacity,
+  Linking,
 } from "react-native";
 import IonIcon from "react-native-vector-icons/Ionicons";
 import FthIcon from "react-native-vector-icons/Feather";
@@ -27,36 +28,59 @@ import ChatsScreen from "./pages/ChatsScreen";
 import LoadingUserPage from "./components/LoadingUserPage";
 import { BottomSheet } from "react-native-btr";
 import { useCommunity } from "./contexts/CommunityContext";
+import registerNNPushToken, { getPushDataObject } from "native-notify";
+import { Alert } from "react-native";
 
-
-
-const Stack = createNativeStackNavigator(); 
+const Stack = createNativeStackNavigator();
 const Tab = createMaterialBottomTabNavigator();
 
-function Home({navigation}) {
-  const {communities} = useCommunity();
+function Home({ navigation }) {
+  const { communities } = useCommunity();
   const [unRead, setUnRead] = useState(0);
-  const {userInfo} = useAuth()
+  const { userInfo } = useAuth();
+  registerNNPushToken(6814, "qCQrQQRHQQBajDw6DXo2wO");
+  let pushDataObject = getPushDataObject();
+
+  
+  useEffect(() => {
+    const url = pushDataObject?.link;
+    const link = async () => {
+      const supported = await Linking.canOpenURL(url);
+
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        // Alert.alert(`Don't know how to open this URL: ${url}`);
+      }
+    };
+    link();
+  }, [pushDataObject]);
 
   useEffect(() => {
-    let temp = 0
-    communities?.filter((com) => com.members.includes(userInfo?.email)).forEach((com)=>{
-      temp += com?.messages?.filter((msg)=>{
-        return !msg?.readBy?.includes(userInfo?.email)
-       }).length;
-    })
-    setUnRead(temp)
-  }, [communities])
-  
+    let temp = 0;
+    communities
+      ?.filter((com) => com.members.includes(userInfo?.email))
+      .forEach((com) => {
+        temp += com?.messages?.filter((msg) => {
+          return !msg?.readBy?.includes(userInfo?.email);
+        }).length;
+      });
+    setUnRead(temp);
+  }, [communities]);
+
   return (
     <Tab.Navigator
       keyboardHidesTabBar={true}
       labeled={true}
       activeColor="#fff"
       inactiveColor="#fff"
-      labelStyle={{ fontSize: 12, fontFamily:"regular", }}
+      labelStyle={{ fontSize: 12, fontFamily: "regular" }}
       backgroundColor="#000"
-      barStyle={{ backgroundColor: '#000',  alignItems:"center", paddingHorizontal:10 }}
+      barStyle={{
+        backgroundColor: "#000",
+        alignItems: "center",
+        paddingHorizontal: 10,
+      }}
       sceneAnimationType="opacity"
       sceneAnimationEnabled={true}
       shifting
@@ -64,24 +88,21 @@ function Home({navigation}) {
       <Tab.Screen
         name="Chats"
         options={{
-          tabBarBadge: unRead > 0 ? unRead : null, 
-          tabBarBadgeStyle: { backgroundColor: "white", color:"white" },
+          tabBarBadge: unRead > 0 ? unRead : null,
+          tabBarBadgeStyle: { backgroundColor: "white", color: "white" },
           tabBarLabel: <Text style={styles.tabBarLabel}>Communities</Text>,
           tabBarIcon: ({ focused, color }) => (
-            
-              <IonIcon color={"white"} size={23} name="ios-people-outline" />
-              
+            <IonIcon color={"white"} size={23} name="ios-people-outline" />
           ),
         }}
         component={ChatHome}
       />
       <Tab.Screen
         name="Search"
-        options={{tabBarLabel: <Text style={styles.tabBarLabel}>Explore</Text>,
+        options={{
+          tabBarLabel: <Text style={styles.tabBarLabel}>Explore</Text>,
           tabBarIcon: ({ focused }) => (
-           
             <AntIcon color={"white"} size={23} name="search1" />
-             
           ),
         }}
         component={SearchPage}
@@ -91,13 +112,7 @@ function Home({navigation}) {
         options={{
           tabBarLabel: <Text style={styles.tabBarLabel}>Create</Text>,
           tabBarIcon: ({ focused }) => (
-           
-              <IonIcon
-                color={"white"}
-                size={23}
-                name="create-outline"
-              />
-           
+            <IonIcon color={"white"} size={23} name="create-outline" />
           ),
         }}
         component={BSheet}
@@ -108,9 +123,7 @@ function Home({navigation}) {
         options={{
           tabBarLabel: <Text style={styles.tabBarLabel}>Github</Text>,
           tabBarIcon: ({ focused }) => (
-           
-              <AntIcon color={"white"} size={23} name="github" />
-            
+            <AntIcon color={"white"} size={23} name="github" />
           ),
         }}
         component={Github}
@@ -121,9 +134,7 @@ function Home({navigation}) {
         options={{
           tabBarLabel: <Text style={styles.tabBarLabel}>Profile</Text>,
           tabBarIcon: ({ focused }) => (
-          
-              <FthIcon color={"white"} size={23} name="user" />
-            
+            <FthIcon color={"white"} size={23} name="user" />
           ),
         }}
         component={ProfilePage}
@@ -133,8 +144,15 @@ function Home({navigation}) {
 }
 
 const Main = () => {
-  const { user, loading, showSheet, setShowSheet, loadingUser, isOffline } =
-    useAuth();
+  const {
+    user,
+    loading,
+    showSheet,
+    setShowSheet,
+    loadingUser,
+    isOffline,
+    setOfflineStatus,
+  } = useAuth();
   useEffect(() => {
     const backAction = () => {
       if (showSheet) {
@@ -259,9 +277,9 @@ const styles = StyleSheet.create({
   },
   tabBarLabel: {
     fontSize: 11,
-    textAlign: 'center',
-    fontFamily: 'medium',
-    color:"white"
+    textAlign: "center",
+    fontFamily: "medium",
+    color: "white",
   },
 });
 

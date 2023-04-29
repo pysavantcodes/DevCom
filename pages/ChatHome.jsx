@@ -24,7 +24,7 @@ import { IconButton } from "react-native-paper";
 
 const { height, width } = Dimensions.get("screen");
 const ChatHome = ({ navigation }) => {
-  const { userInfo } = useAuth();
+  const { userInfo, isOffline } = useAuth();
   const { loadingCommunities, communities, fetchCommunities } = useCommunity();
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectable, setSelectable] = useState(false);
@@ -213,7 +213,11 @@ const ChatHome = ({ navigation }) => {
               refreshControl={
                 <RefreshControl
                   refreshing={myCommunities ? false : true}
-                  onRefresh={() => fetchCommunities()}
+                  onRefresh={() => {
+                    if (!isOffline) {
+                      fetchCommunities();
+                    }
+                  }}
                 />
               }
               ListEmptyComponent={() => (
@@ -262,7 +266,7 @@ const ChatHome = ({ navigation }) => {
                   keyProp={item.id}
                   recentMessage={[
                     item?.messages?.at(-1)?.sender,
-                    
+
                     item?.messages
                       ?.at(-1)
                       ?.message?.startsWith(
@@ -272,13 +276,16 @@ const ChatHome = ({ navigation }) => {
                           item?.messages?.at(-1).message.split("/").length - 1
                         ]
                       : item?.messages?.at(-1)?.message,
-                      item?.messages?.at(-1)?.time
+                    item?.messages?.at(-1)?.time,
                   ]}
                   selected={selectedItems.includes(item.id) ? true : false}
                   clicked={() =>
                     selectable
                       ? handlePress(item.id)
-                      : navigation.navigate("ChatScreen", { id: item.id })
+                      : navigation.navigate("ChatScreen", {
+                          id: item.id,
+                          community: item,
+                        })
                   }
                   unRead={
                     item?.messages?.filter((msg) => {

@@ -28,9 +28,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { Modal } from "react-native";
 import CommunityInfo from "../components/CommunityInfo";
 import ImageView from "react-native-image-viewing";
-import { IconButton } from "react-native-paper";
+import { Button, IconButton } from "react-native-paper";
 import Feather from "react-native-vector-icons/Feather";
 import Clipboard from "@react-native-community/clipboard";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const { width, height } = Dimensions.get("screen");
 
@@ -40,7 +42,7 @@ const ChatsScreen = ({ navigation, route }) => {
   const [message, setMessage] = useState("");
   const [matchingDocs, setMatchingDocs] = useState(null);
   const q = query(collection(database, "communities"), where("id", "==", id));
-  const { userInfo } = useAuth();
+  const { userInfo, isOffline } = useAuth();
   const listRef = useRef();
   const { allUsers } = useCommunity();
   const [showModal, setShowModal] = useState(false);
@@ -56,58 +58,71 @@ const ChatsScreen = ({ navigation, route }) => {
     const date = new Date(timestamp);
     const hours = date.getHours() % 12 || 12; // Get hours in 12-hour format
     const minutes = date.getMinutes();
-    const ampm = date.getHours() >= 12 ? 'pm' : 'am';
-  
+    const ampm = date.getHours() >= 12 ? "pm" : "am";
+
     // Calculate time difference in milliseconds
     const diffTime = Date.now() - date.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
     const diffMonths = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30));
     const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
-  
-    let formattedTime = '';
+
+    let formattedTime = "";
     if (diffDays < 1) {
-      
       formattedTime = `Today`;
     } else if (diffDays === 1) {
-      formattedTime = 'Yesterday';
+      formattedTime = "Yesterday";
     } else if (diffDays < 7) {
-      formattedTime = `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+      formattedTime = `${diffDays} ${diffDays === 1 ? "day" : "days"} ago`;
     } else if (diffWeeks === 1) {
-      formattedTime = '1 week ago';
+      formattedTime = "1 week ago";
     } else if (diffWeeks < 4) {
       formattedTime = `${diffWeeks} weeks ago`;
     } else if (diffMonths === 1) {
-      formattedTime = '1 month ago';
+      formattedTime = "1 month ago";
     } else if (diffMonths < 12) {
       formattedTime = `${diffMonths} months ago`;
     } else if (diffYears === 1) {
-      formattedTime = '1 year ago';
+      formattedTime = "1 year ago";
     } else {
       formattedTime = `${diffYears} years ago`;
     }
-  
-    formattedTime += `, ${hours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
-  
+
+    formattedTime += `, ${hours}:${minutes < 10 ? "0" : ""}${minutes} ${ampm}`;
+
     return formattedTime;
   }
-  
-  
 
   //fetching community details
   useEffect(() => {
-    const getCommunity = async () => {
-      const querySnapshot = await getDocs(q);
-      setMatchingDocs(querySnapshot.docs);
-      onSnapshot(q, (snapShot) => {
-        snapShot.forEach((data) => {
-          setCommunity(data.data());
+    if (!isOffline) {
+      const getCommunity = async () => {
+        const querySnapshot = await getDocs(q);
+        setMatchingDocs(querySnapshot.docs);
+        onSnapshot(q, (snapShot) => {
+          snapShot.forEach((data) => {
+            setCommunity(data.data());
+            AsyncStorage.setItem(
+              `community_${id}`,
+              JSON.stringify(data.data())
+            );
+          });
         });
-      });
-    };
-    getCommunity();
+      };
+      getCommunity();
+    } else {
+      console.log("Offline");
+      const loadCommunity = async () => {
+        const storedCommunity = await AsyncStorage.getItem(`community_${id}`);
+        if (storedCommunity) {
+          const communityData = JSON.parse(storedCommunity);
+          setCommunity(communityData);
+        }
+      };
+      loadCommunity();
+    }
   }, []);
-  
+
 
   //read message logic
   useEffect(() => {
@@ -131,8 +146,6 @@ const ChatsScreen = ({ navigation, route }) => {
     readMessage();
   }, [community]);
 
-
-
   //image slide logic
   useEffect(() => {
     const getAllImages = community?.messages?.filter((msg) => {
@@ -144,7 +157,6 @@ const ChatsScreen = ({ navigation, route }) => {
     });
     setImages(tempImg);
   }, [community]);
-
 
   //function for sending messages
   const sendMessage = async () => {
@@ -196,7 +208,7 @@ const ChatsScreen = ({ navigation, route }) => {
     });
   };
 
-  
+ 
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
@@ -443,7 +455,7 @@ const ChatsScreen = ({ navigation, route }) => {
                   <View
                     style={{
                       flexDirection: "row",
-                      marginBottom:3,
+                      marginBottom: 3,
                       justifyContent:
                         user[0].email === userInfo.email
                           ? "flex-end"
@@ -464,7 +476,7 @@ const ChatsScreen = ({ navigation, route }) => {
                     )}
 
                     <View
-                    ref={viewRef}
+                      ref={viewRef}
                       style={{
                         maxWidth: "70%",
                         backgroundColor:
@@ -645,7 +657,9 @@ const ChatsScreen = ({ navigation, route }) => {
           <TouchableOpacity
             onPress={() => sendMessage()}
             disabled={
-              message.length < 1 || message.trim().length === 0 ? true : false
+              message.length < 1 || message.trim().length === 0
+                ? true
+                : false || isOffline
             }
             style={{
               width: 40,
@@ -656,7 +670,9 @@ const ChatsScreen = ({ navigation, route }) => {
               justifyContent: "center",
               borderRadius: 30,
               opacity:
-                message.length < 1 || message.trim().length === 0 ? 0.7 : 1,
+                message.length < 1 || message.trim().length === 0 || isOffline
+                  ? 0.7
+                  : 1,
             }}
           >
             <Ionicons color={"white"} name="send" size={20} />

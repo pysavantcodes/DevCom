@@ -8,6 +8,9 @@ import {
 } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 import { database } from "../firebase-config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "./AuthContext";
+import NetInfo from "@react-native-community/netinfo";
 
 const CommunityContext = React.createContext();
 export const useCommunity = () => {
@@ -17,8 +20,9 @@ export const useCommunity = () => {
 const CommunityProvider = ({ children }) => {
   const [communities, setCommunities] = useState([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
-  const [allUsers, setAllUsers] = useState([])
+  const [allUsers, setAllUsers] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState({});
+  const { isOffline } = useAuth();
 
   const fetchCommunities = async () => {
     setLoadingCommunities(true);
@@ -31,16 +35,34 @@ const CommunityProvider = ({ children }) => {
         });
         setCommunities(tempCom);
         setLoadingCommunities(false);
+        AsyncStorage.setItem("communities", JSON.stringify(tempCom));
       });
-      
     } catch (err) {
       setLoadingCommunities(false);
+      const storedCommunities = await AsyncStorage.getItem("communities");
+      if (storedCommunities) {
+        const communitiesData = JSON.parse(storedCommunities);
+        setCommunities(communitiesData);
+      }
     }
   };
 
   useEffect(() => {
-    
-    fetchCommunities();
+    const setOfflineData = async () => {
+      if (isOffline) {
+        setLoadingCommunities(true);
+        const storedCommunities = await AsyncStorage.getItem("communities");
+        if (storedCommunities) {
+          const communitiesData = JSON.parse(storedCommunities);
+          setCommunities(communitiesData);
+          setLoadingCommunities(false);
+          console.log(communitiesData);
+        }
+      } else {
+        fetchCommunities();
+      }
+    };
+    setOfflineData();
   }, [database]);
 
   useEffect(() => {
@@ -54,7 +76,6 @@ const CommunityProvider = ({ children }) => {
           });
           setAllUsers(tempCom);
         });
-        
       } catch (err) {
         console.log(err);
       }
@@ -63,7 +84,16 @@ const CommunityProvider = ({ children }) => {
   }, [database]);
 
   return (
-    <CommunityContext.Provider value={{ allUsers,communities, loadingCommunities, selectedCommunity, setSelectedCommunity, fetchCommunities }}>
+    <CommunityContext.Provider
+      value={{
+        allUsers,
+        communities,
+        loadingCommunities,
+        selectedCommunity,
+        setSelectedCommunity,
+        fetchCommunities,
+      }}
+    >
       {children}
     </CommunityContext.Provider>
   );

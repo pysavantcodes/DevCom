@@ -41,19 +41,22 @@ function Home({ navigation }) {
   registerNNPushToken(6814, "qCQrQQRHQQBajDw6DXo2wO");
   let pushDataObject = getPushDataObject();
 
-  
+
   useEffect(() => {
     const url = pushDataObject?.link;
-    const link = async () => {
-      const supported = await Linking.canOpenURL(url);
-
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        // Alert.alert(`Don't know how to open this URL: ${url}`);
-      }
-    };
-    link();
+    console.log(pushDataObject);
+    if(pushDataObject.link){
+      const link = async () => {
+        const supported = await Linking.canOpenURL(url);
+  
+        if (supported) {
+          await Linking.openURL(url);
+        } else {
+          // Alert.alert(`Don't know how to open this URL: ${url}`);
+        }
+      }; 
+      link();
+    }
   }, [pushDataObject]);
 
   useEffect(() => {
